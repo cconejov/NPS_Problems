@@ -8,6 +8,8 @@
 ## 1.4) conf:  Range of confidence interval
 ## 1.5) type_CI: Type of confidence interval. (Based on normal standard or quantiles)
 ## 1.6) type_boot: Type of bootstrap procedure. Options Naive and Wild bootstrap
+## 1.7) perturbed_res: Valid only for Wild Bootstrap. Type of perturbation on the residuals
+## 1.8) seed:
 
 # 2) Outputs
 
@@ -21,7 +23,12 @@ np_pred_CI <- function(npfit,
                        B = 200, 
                        conf = 0.95,
                        type_CI = c("standard", "quantiles")[1],
-                       type_boot = c("naive", "wild")[1]) {
+                       type_boot = c("naive", "wild")[1],
+                       perturbed_res = c("normal", "golden")[1],
+                       seed = 42) {
+  
+  # Fix seed
+  set.seed(seed)
   
   # Extract predictors
   xdat <- npfit$eval
@@ -69,31 +76,64 @@ np_pred_CI <- function(npfit,
     # Ordinary residuals
     residuals_O <- Y_hat - ydat
     
-    
-    # Function for performing wild bootstrap
-    boot_function_wild <- function(data, indices) {
+    # Type of perturbation
+    if(perturbed_res == "normal"){
       
+      # Function for performing wild bootstrap
+      boot_function_wild <- function(data, indices) {
+        
       # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
-      V_n <- rnorm(n)
-      
+        V_n <- rnorm(n)
+        
       # Step iii. Obtain the bootstrap sample
       ydat_bt <- Y_hat + data[indices]*V_n
-      
+        
       np::npreg(txdat = xdat, 
                 tydat = ydat_bt,
                 exdat = exdat, 
                 bws = npfit$bws)$mean
+      }
+      
+      # Step iv. Carry out the wild bootstrap estimator
+      m_hat_star <- boot::boot(data = residuals_O, 
+                               statistic = boot_function_wild,
+                               R = B)$t
+      
+      
+    } else if(perturbed_res == "golden"){
+      
+      # Function for performing wild bootstrap
+      boot_function_wild <- function(data, indices) {
+        
+        # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
+        phi <- (1 + sqrt(5))/2
+        prob <- (phi + 2)/5  
+  
+
+        golden <- sample(x = c(1-phi,phi), size = n, prob = c(prob, 1 - prob), replace=T)
+        
+        # Step iii. Obtain the bootstrap sample
+        ydat_bt <- Y_hat + data[indices]*golden
+        
+        np::npreg(txdat = xdat, 
+                  tydat = ydat_bt,
+                  exdat = exdat, 
+                  bws = npfit$bws)$mean
+      }
+      
+      # Step iv. Carry out the wild bootstrap estimator
+      m_hat_star <- boot::boot(data = residuals_O, 
+                               statistic = boot_function_wild,
+                               R = B)$t
+      
     }
     
-    # Step iv. Carry out the wild bootstrap estimator
-    m_hat_star <- boot::boot(data = residuals_O, 
-                             statistic = boot_function_wild,
-                             R = B)$t
- 
+    else{   stop("Incorrect type of peturbation")}
+  }else{   stop("Incorrect type__boot")}
     
-  } else {
-    stop("Incorrect type_boot")
-  }
+    
+    
+ 
   
   
   # Confidence intervals

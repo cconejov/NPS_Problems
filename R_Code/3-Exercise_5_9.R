@@ -10,7 +10,7 @@
 rm(list =ls())
 
 set.seed(12345)
-B <- 200
+B <- 500
 n <- 100
 eps <- rnorm(n, sd = 0.75)
 m <- function(x) 0.25*x^2 - 0.75*x + 3
@@ -60,15 +60,21 @@ source("R_Code/np_pred_CI.R")
 
 # Obtain predictions and confidence intervals along a fine grid, using the
 # same seed employed by np::npplot for proper comparison
-set.seed(42)
+
 ci1 <- np_pred_CI(npfit = fit1, 
                   exdat = seq(-5, 5, by = 0.1),
                   B = B, 
                   type_CI = "quantiles",
                   type_boot = "naive")
 # Reconstruction of np::npplot’s figure -- the curves coincide perfectly
-plot(fit1, plot.errors.method = "bootstrap", plot.errors.type = "quantiles",
-     plot.errors.boot.num = B, plot.errors.style = "bar", lwd = 3)
+plot(fit1, 
+     plot.errors.method = "bootstrap", 
+     plot.errors.type = "quantiles",
+     plot.errors.boot.num = B, 
+     plot.errors.style = "bar", 
+     lwd = 3,  
+     main = "Confidence Intervals quantile \n Naive Bootstrap",
+     xlim = c(-5,5))
 lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
       col = 2, lwd = 3)
 lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
@@ -79,9 +85,9 @@ lines(ci1$exdat, ci1$upr, col = 4)
 
 
 
-## Wild bootstrap
+## Wild bootstrap (Normal perturbation)
 
-set.seed(42)
+
 ci1 <- np_pred_CI(npfit = fit1, 
                   exdat = seq(-5, 5, by = 0.1),
                   B = B, 
@@ -94,7 +100,7 @@ plot(fit1,
      plot.errors.boot.num = B, 
      plot.errors.style = "bar", 
      lwd = 3,
-     main = "Confidence Intervals quantile with Wild Bootstrap",
+     main = "Confidence Intervals quantile \n Wild Bootstrap - Normal perturbation",
      xlim = c(-5,5) )
 lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
       col = 2, lwd = 3)
@@ -104,3 +110,28 @@ lines(ci1$exdat, ci1$m_hat, col = 3)
 lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
 
+## Wild bootstrap (Golden ratio perturbation)
+
+
+ci1 <- np_pred_CI(npfit = fit1, 
+                  exdat = seq(-5, 5, by = 0.1),
+                  B = B, 
+                  type_CI = "quantiles",
+                  type_boot = "wild",
+                  perturbed_res = "golden")
+# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+plot(fit1, 
+     plot.errors.method = "bootstrap", 
+     plot.errors.type = "quantiles",
+     plot.errors.boot.num = B, 
+     plot.errors.style = "bar", 
+     lwd = 3,
+     main = "Confidence Intervals quantile \n Wild Bootstrap - Golden ratio perturbation",
+     xlim = c(-5,5) )
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lwd = 3)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lwd = 3)
+lines(ci1$exdat, ci1$m_hat, col = 3)
+lines(ci1$exdat, ci1$lwr, col = 4)
+lines(ci1$exdat, ci1$upr, col = 4)
