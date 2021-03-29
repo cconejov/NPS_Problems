@@ -1,0 +1,198 @@
+---
+title: "Question1"
+author: "Cesar Conejo"
+date: "3/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+```{r}
+temps_7 <- read.table(file = "data/temps-7.txt", header = TRUE)
+temps_other <- read.table(file = "data/temps-other.txt", header = TRUE)
+
+temps_7 <- temps_7$x
+temps_other <- temps_other$x
+```
+
+
+```{r}
+summary(temps_7)
+summary(temps_other)
+```
+
+## a. Perform a kernel density estimation for temps-7 and temps-other using what you consider is the most adequate bandwidth. Since the temperatures are positive, is it required to perform any transformation?
+
+```{r}
+par(mfrow = c(1,2))
+hist(temps_7, main = 'Problematic battery')
+hist(temps_other, main = 'Past battery')
+```
+
+
+```{r}
+par(mfrow = c(1,2))
+plot(density(x = temps_7), xlim = c(-5,65), main = 'Problematic battery')
+plot(density(x = temps_other), xlim = c(-5,65), main = 'Past battery')
+```
+
+```{r}
+# Deal with the problem of Select a particular bandwidth
+par(mfrow = c(1,2))
+plot(density(x = temps_7))
+plot(density(x = temps_7, bw = 0.5))
+```
+
+
+```{r}
+# Transformed the data: No necessary. The min observation is away from zero! (No assigment of probability)
+
+# kde with log-transformed data
+kde <- density(log(temps_7))
+plot(kde, main = "Kde of transformed data")
+range(kde$x)
+
+# Untransform kde$x so the grid is in (0, infty)
+kde_transf <- kde
+kde_transf$x <- exp(kde_transf$x)
+# Transform the density using the chain rule
+kde_transf$y <- kde_transf$y * 1 / kde_transf$x
+
+par(mfrow = c(1,2))
+plot(density(x = temps_7), xlim = c(-5,65), main = 'Problematic battery')
+# Transformed kde
+plot(kde_transf, main = "Problematic battery: Transformed kde", xlim = c(-5, 65))
+```
+
+
+```{r}
+## SAME WITH temps_other
+
+## kde with log-transformed data
+kde <- density(log(temps_other))
+plot(kde, main = "Kde of transformed data")
+range(kde$x)
+
+# Untransform kde$x so the grid is in (0, infty)
+kde_transf <- kde
+kde_transf$x <- exp(kde_transf$x)
+# Transform the density using the chain rule
+kde_transf$y <- kde_transf$y * 1 / kde_transf$x
+
+par(mfrow = c(1,2))
+plot(density(x = temps_other), xlim = c(-5,60), main = 'Past battery')
+# Transformed kde
+plot(kde_transf, main = "Past battery: Transformed kde", xlim = c(-5, 60))
+```
+
+## b. Is there any important difference on the results from considering the LSCV selector over the DPI selector?
+
+### temps_7
+
+```{r}
+summary(temps_7)
+par(mfrow = c(1,2))
+plot(density(x = temps_7))
+plot(density(x = temps_7), xlim = c(-5,65))
+```
+
+
+```{r}
+bw.nrd0(x = temps_7) # Default option!!!
+
+
+bw.nrd(x = temps_7)  # Rule-Thumb 
+
+bw.ucv(x = temps_7)
+
+# Eduardo function
+
+source("functions/bw_ucv_mod.R")
+bw_ucv <- bw.ucv.mod(x = temps_7, plot_cv = TRUE, h_grid = 10^seq(-1.5, 0.5, l = 200))
+bw_ucv
+
+bw_dpi <- bw.SJ(x = temps_7, method = "dpi")
+ks::hpi(temps_7)
+```
+
+```{r}
+plot(density(x = temps_7), xlim = c(-5,65))
+```
+
+```{r}
+plot(density(x = temps_7, bw = bw_ucv), xlim = c(-5,65))
+```
+
+```{r}
+plot(density(x = temps_7, bw = bw_dpi), xlim = c(-5,65))
+```
+
+
+## c. It seems that in temps-7 there is a secondary mode. Compute a kernel derivative estimation for temps-7 and temps-other using what you consider are the most adequate bandwidths.
+
+```{r}
+plot(density(x = temps_7), xlim = c(-5,65))
+pos_Max <- which.max(density(x = temps_7)$y)
+pos_Max
+density(x = temps_7)$x[pos_Max]
+
+plot(density(x = temps_7), xlim = c(-5,65))
+abline(v = density(x = temps_7)$x[pos_Max] )
+
+
+## Find the minimun (Then, from the minumn, look up the max in the rest of the dist)
+
+# MIN
+YY <- density(x = temps_7)$y[density(x = temps_7)$x > 20 & density(x = temps_7)$x < 40]
+minY <- min(YY)
+posMin <- which(density(x = temps_7)$y == minY)
+density(x = temps_7)$x[posMin]
+## [1] 33.83911
+
+# MAX
+YY <- density(x = temps_7)$y[density(x = temps_7)$x > 33 & density(x = temps_7)$x < 60]
+maxY <- max(YY)
+posMax <- which(density(x = temps_7)$y == maxY)
+density(x = temps_7)$x[posMax]
+```
+
+
+```{r}
+plot(density(x = temps_7), xlim = c(-5,65), main = "temp_7: Density Estimation")
+abline(v = density(x = temps_7)$x[pos_Max], col = "3")
+abline(v = density(x = temps_7)$x[posMax], col = "3")
+```
+
+```{r}
+kdde_0 <- ks::kdde(x = temps_7, deriv.order = 0)
+plot(kdde_0, xlab = "x", main = "Density estimation")
+abline(v = density(x = temps_7)$x[pos_Max], col = "3")
+abline(v = density(x = temps_7)$x[posMax], col = "3")
+```
+
+
+```{r}
+# Density derivative estimation (automatically chosen bandwidth, but different
+# from kdde_0!)
+kdde_1 <- ks::kdde(x = temps_7, deriv.order = 1)
+plot(kdde_1, xlab = "x", main = "Density derivative estimation")
+abline(v = density(x = temps_7)$x[pos_Max], col = "3")
+abline(v = density(x = temps_7)$x[posMax], col = "3")
+abline(h = 0)
+```
+
+
+```{r}
+kdde_2 <- ks::kdde(x = temps_7, deriv.order = 2)
+plot(kdde_2, xlab = "x", main = "Density second derivative estimation")
+abline(v = density(x = temps_7)$x[pos_Max], col = "3")
+abline(v = density(x = temps_7)$x[posMax], col = "3")
+abline(h = 0)
+
+```
+
+
