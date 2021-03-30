@@ -1,0 +1,325 @@
+---
+title: "Wild_bootstrap"
+author: "Cesar Conejo"
+date: "3/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Wild Bootstrap
+
+Fitted values: $\hat{Y}_{i} := \hat{m}(X_{i};q,h)$ with $i = 1,...,n$.
+
+Prediction (Under a new grid): $\hat{m}(x,q,h)$. What about the uncertainty of $\hat{m}(x;q,h)$?
+
+1. Asymptotic approach: $\hat{m}(x;q,h) \pm \hat{se}(\hat{m}(x;q,h))$
+
+2. Bootstrap (we will focus on will bootstrap)
+
+  1. Compute $\hat{m}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x)Y_{i}$ from the original sample $(X_{1}, Y_{1}),...,(X_{n}, Y_{n})$
+  
+  2. Enter the wild bootstrap. For $b = 1,...,B$.
+  
+  i. Simulate $V_{1}^{*b},...,V_{n}^{*b}$ to be iid copies of $V$ such that $E[V] = 0$ and $Var[V] = 1$,
+  
+  ii. Compute the *pertubed residuals* $e_{i}^{*b} = \hat{e}_{i}V_{i}^{*b}$ where $Y_{i}^{*b} := \hat{m}(X_{i};q,h) + e_{i}^{*b}$ for $i = 1,...,n$.
+  
+  iii. Obtain the bootstrap sample: $(X_{1}, Y_{1}^{*b}),...,(X_{n}, Y_{n}^{*b})$ where $Y_{i}^{*b} := \hat{m}(X_{i};q,h) + e_{i}^{*b}$ with $i = 1,...,n$.
+  
+  iv. Compute $\hat{m}^{*b}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x) Y_{i}^{*b}$ from $(X_{1}^{*}, Y_{1}^{*b}),...,(X_{n}^{8}, Y_{n}^{*b})$
+  
+## Function:
+
+```{r}
+# Function to predict and compute confidence intervals for m(x). 
+
+# 1) Inputs
+
+## 1.1) npfit: A np::npreg object (npfit) 
+## 1.2) exdat: Values of the predictors where to carry out prediction (exdat)
+## 1.3) B:     Number of bootstrap iterations.
+## 1.4) conf:  Range of confidence interval
+## 1.5) type_CI: Type of confidence interval. (Based on normal standard or quantiles)
+## 1.6) type_boot: Type of bootstrap procedure. Options Naive and Wild bootstrap
+## 1.7) perturbed_res: Valid only for Wild Bootstrap. Type of perturbation on the residuals
+## 1.8) seed:
+
+# 2) Outputs
+
+## 2.1) exdat:
+## 2.2) m_hat: 
+## 2.3) lwr:
+## 2.4) upr:
+
+np_pred_CI <- function(npfit, 
+                       exdat, 
+                       B = 200, 
+                       conf = 0.95,
+                       type_CI = c("standard", "quantiles")[1],
+                       type_boot = c("naive", "wild")[1],
+                       perturbed_res = c("normal", "golden")[1],
+                       seed = 42) {
+  
+  # Fix seed
+  set.seed(seed)
+  
+  # Extract predictors
+  xdat <- npfit$eval
+  
+  # Extract response, using a trick from np::npplot.rbandwidth
+  tt <- terms(npfit$bws)
+  tmf <- npfit$bws$call[c(1, match(c("formula", "data"),
+                                   names(npfit$bws$call)))]
+  tmf[[1]] <- as.name("model.frame")
+  tmf[["formula"]] <- tt
+  tmf <- eval(tmf, envir = environment(tt))
+  ydat <- model.response(tmf)
+  
+
+  # Predictions m_hat from the original sample
+  m_hat <- np::npreg(txdat = xdat, 
+                     tydat = ydat, 
+                     exdat = exdat,
+                     bws   = npfit$bws)$mean
+  
+  
+  if (type_boot == "naive") {
+    
+    # Function for performing naive bootstrap
+    boot_function_naive <- function(data, indices) {
+      np::npreg(txdat = xdat[indices,], 
+                tydat = ydat[indices],
+                exdat = exdat, 
+                bws   = npfit$bws)$mean
+    }
+    
+    # Carry out the bootstrap estimator
+    m_hat_star <- boot::boot(data = data.frame(xdat), 
+                             statistic = boot_function_naive,
+                             R = B)$t
+    
+  } else if (type_boot == "wild") {
+    
+    # Sample size of the predictors
+    n <- length(xdat)
+    
+    # Y fitted
+    Y_hat <- npfit$mean
+    
+    # Ordinary residuals
+    residuals_O <- Y_hat - ydat
+    
+    # Type of perturbation
+    if(perturbed_res == "normal"){
+      
+      # Function for performing wild bootstrap
+      boot_function_wild <- function(data, indices) {
+        
+      # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
+        V_n <- rnorm(n)
+        
+      # Step iii. Obtain the bootstrap sample
+      ydat_bt <- Y_hat + data[indices]*V_n
+        
+      np::npreg(txdat = xdat, 
+                tydat = ydat_bt,
+                exdat = exdat, 
+                bws = npfit$bws)$mean
+      }
+      
+      # Step iv. Carry out the wild bootstrap estimator
+      m_hat_star <- boot::boot(data = residuals_O, 
+                               statistic = boot_function_wild,
+                               R = B)$t
+      
+      
+    } else if(perturbed_res == "golden"){
+      
+      # Function for performing wild bootstrap
+      boot_function_wild <- function(data, indices) {
+        
+        # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
+        phi <- (1 + sqrt(5))/2
+        prob <- (phi + 2)/5  
+  
+
+        golden <- sample(x = c(1-phi,phi), size = n, prob = c(prob, 1 - prob), replace=T)
+        
+        # Step iii. Obtain the bootstrap sample
+        ydat_bt <- Y_hat + data[indices]*golden
+        
+        np::npreg(txdat = xdat, 
+                  tydat = ydat_bt,
+                  exdat = exdat, 
+                  bws = npfit$bws)$mean
+      }
+      
+      # Step iv. Carry out the wild bootstrap estimator
+      m_hat_star <- boot::boot(data = residuals_O, 
+                               statistic = boot_function_wild,
+                               R = B)$t
+      
+    }
+    
+    else{   stop("Incorrect type of peturbation")}
+  }else{   stop("Incorrect type__boot")}
+    
+    
+    
+ 
+  
+  
+  # Confidence intervals
+  alpha <- 1 - conf
+  
+  if (type_CI == "standard") {
+    
+    z <- qnorm(p = 1 - alpha / 2)
+    se <- apply(m_hat_star, 2, sd)
+    lwr <- m_hat - z * se
+    upr <- m_hat + z * se
+    
+  } else if (type_CI == "quantiles") {
+    
+    q <- apply(m_hat_star, 2, quantile, probs = c(alpha / 2, 1 - alpha / 2))
+    lwr <- q[1, ]
+    upr <- q[2, ]
+    
+  } else {
+    stop("Incorrect type_CI")
+  }
+  # Return evaluation points, estimates, and confidence intervals
+  return(data.frame("exdat" = exdat, "m_hat" = m_hat, "lwr" = lwr, "upr" = upr))
+}
+```
+
+# Simulation
+
+```{r}
+set.seed(12345)
+B <- 500
+n <- 100
+eps <- rnorm(n, sd = 0.75)
+m <- function(x) 0.25*x^2 - 0.75*x + 3
+X <- rnorm(n, sd = 1.5)
+Y <- m(X) + eps
+
+bw1 <- np::npregbw(formula = Y ~ X, regtype = "lc")
+fit1 <- np::npreg(bw1)
+```
+
+
+```{r}
+# Normal approximation confidence intervals + extraction of errors
+npplot_std <- plot(fit1, plot.errors.method = "bootstrap",
+                   plot.errors.type = "standard", plot.errors.boot.num = B,
+                   plot.errors.style = "bar", plot.behavior = "plot-data",
+                   lwd = 2)
+lines(npplot_std$r1$eval[, 1], npplot_std$r1$mean + npplot_std$r1$merr[, 1],
+      col = 2, lty = 2)
+lines(npplot_std$r1$eval[, 1], npplot_std$r1$mean + npplot_std$r1$merr[, 2],
+      col = 2, lty = 2)
+# These bootstrap standard errors are different from the asymptotic ones
+head(npplot_std$r1$merr)
+```
+
+
+```{r}
+# Quantile confidence intervals + extraction of errors
+npplot_qua <- plot(fit1, plot.errors.method = "bootstrap",
+                   plot.errors.type = "quantiles", plot.errors.boot.num = B,
+                   plot.errors.style = "bar", plot.behavior = "plot-data")
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lty = 2)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lty = 2)
+```
+
+   
+```{r}
+
+ci1 <- np_pred_CI(npfit = fit1, 
+                  exdat = seq(-5, 5, by = 0.1),
+                  B = B, 
+                  type_CI = "quantiles",
+                  type_boot = "naive")
+# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+plot(fit1, 
+     plot.errors.method = "bootstrap", 
+     plot.errors.type = "quantiles",
+     plot.errors.boot.num = B, 
+     plot.errors.style = "bar", 
+     lwd = 3,  
+     main = "Confidence Intervals quantile \n Naive Bootstrap",
+     xlim = c(-5,5))
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lwd = 3)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lwd = 3)
+lines(ci1$exdat, ci1$m_hat, col = 3)
+lines(ci1$exdat, ci1$lwr, col = 4)
+lines(ci1$exdat, ci1$upr, col = 4)
+```
+
+
+```{r}
+
+## Wild bootstrap (Normal perturbation)
+
+
+ci1 <- np_pred_CI(npfit = fit1, 
+                  exdat = seq(-5, 5, by = 0.1),
+                  B = B, 
+                  type_CI = "quantiles",
+                  type_boot = "wild")
+# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+plot(fit1, 
+     plot.errors.method = "bootstrap", 
+     plot.errors.type = "quantiles",
+     plot.errors.boot.num = B, 
+     plot.errors.style = "bar", 
+     lwd = 3,
+     main = "Confidence Intervals quantile \n Wild Bootstrap - Normal perturbation",
+     xlim = c(-5,5) )
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lwd = 3)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lwd = 3)
+lines(ci1$exdat, ci1$m_hat, col = 3)
+lines(ci1$exdat, ci1$lwr, col = 4)
+lines(ci1$exdat, ci1$upr, col = 4)
+```
+
+
+```{r}
+
+## Wild bootstrap (Golden ratio perturbation)
+
+
+ci1 <- np_pred_CI(npfit = fit1, 
+                  exdat = seq(-5, 5, by = 0.1),
+                  B = B, 
+                  type_CI = "quantiles",
+                  type_boot = "wild",
+                  perturbed_res = "golden")
+# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+plot(fit1, 
+     plot.errors.method = "bootstrap", 
+     plot.errors.type = "quantiles",
+     plot.errors.boot.num = B, 
+     plot.errors.style = "bar", 
+     lwd = 3,
+     main = "Confidence Intervals quantile \n Wild Bootstrap - Golden ratio perturbation",
+     xlim = c(-5,5) )
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lwd = 3)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lwd = 3)
+lines(ci1$exdat, ci1$m_hat, col = 3)
+lines(ci1$exdat, ci1$lwr, col = 4)
+lines(ci1$exdat, ci1$upr, col = 4)
+```
+
