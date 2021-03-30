@@ -49,6 +49,8 @@ MISE <- (2*sqrt(pi))^(-1)*MISE1
 plot(log(h), MISE1)
 
 
+# nn
+
 
 
 ## ----------------------
