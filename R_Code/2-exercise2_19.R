@@ -9,53 +9,7 @@
 # Available models
 ?nor1mix::MarronWand
 
-# Simulating
-set.seed(42)
-samp <- nor1mix::rnorMix(n = 500, obj = nor1mix::MW.nm9) # Trimodal
-# MW object in the second argument
-hist(samp, freq = FALSE)
-# Density evaluation
-x <- seq(-4, 4, length.out = 400)
-lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm9), col = 2)
-# Plot a MW object directly
-# A normal with the same mean and variance is plotted in dashed lines --
-# you can remove it with argument p.norm = FALSE
-par(mfrow = c(2, 2))
-plot(nor1mix::MW.nm5)
-plot(nor1mix::MW.nm7)
-plot(nor1mix::MW.nm10)
-plot(nor1mix::MW.nm12)
-lines(nor1mix::MW.nm7, col = 2) # Also possible
-par(mfrow = c(1, 1))
-
-
-## f1
-
-# Kernel: K ~ N(0,1)
-# f density f ~ N(0,1)
-
-plot(nor1mix::MW.nm1)
-
-
-n <- 100
-h <- seq(0.01, 1, by = 0.01 )
-w <- c(1)
-
-sigma2 <- 1
-
-MISE1 <- (1/(n*h)) + (1 - (1/n))*((sigma2 + h^2)^(-1/2)) + (1/sqrt(sigma2)) - 2^(3/2)*((2*sigma2 + h^2)^(-1/2))
-MISE <- (2*sqrt(pi))^(-1)*MISE1
-
-plot(log(h), MISE1)
-
-
-# nn
-
-
-
-## ----------------------
-rm(list = ls())
-
+# Functions =================================
 
 omega_a <- function(a, w, h, mu, sigma2){
   k <- length(w)
@@ -71,8 +25,6 @@ omega_a <- function(a, w, h, mu, sigma2){
   return(M)
 }
 
-
-
 omega <- function(w, h, n, mu, sigma2){
   
   omega2 <- omega_a(a = 2, w, h, mu, sigma2)
@@ -82,30 +34,112 @@ omega <- function(w, h, n, mu, sigma2){
   return(t(w) %*% omega %*% w)
 }
 
+MISE <- function(h, n, w, mu, sigma2){
+  
+  len_h   <- length(h)
+  MISE_h1 <- numeric(len_h)
+  MISE_h  <- numeric(len_h)
+  for(i in 1:len_h){MISE_h1[i] <- omega(w, h[i], n, mu, sigma2)}
+  MISE_h <- (2*sqrt(pi) *n*h)^(-1) + MISE_h1
+  return(MISE_h)
+  
+}
 
-n <- 100
-h <- seq(0.01, 1, by = 0.01 )
+# Case 1: nor1mix::MW.nm1 N(0,1) =================================
 
-w <- c(3/4,1/4)
-mu <- c(0, 3/2)
-sigma2 <- c(1, (1/3)^2) 
-MISE1 <- vector(length = length(h))
+# Simulating
+set.seed(42)
+x100 <- nor1mix::rnorMix(n = 100, obj = nor1mix::MW.nm1)
+x200 <- nor1mix::rnorMix(n = 200, obj = nor1mix::MW.nm1)
+x500 <- nor1mix::rnorMix(n = 500, obj = nor1mix::MW.nm1)
 
-for(i in 1:length(h)){MISE1[i] <- omega(w, h[i], n, mu, sigma2)}
+# Density evaluation
+x <- seq(-4, 4, length.out = 400)
 
-MISE <- (2*sqrt(pi) *n*h)^(-1) + MISE1
-
-plot(h, MISE)
-plot(log(h), MISE,type = "l")
-
-
-
-
-
-
-
-
+# Histogram plots
+par(mfrow = c(1,3))
+hist(x100, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm1 n = 100")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm1), col = 2)
+hist(x200, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm1 n = 200")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm1), col = 2)
+hist(x500, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm1 n = 500")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm1), col = 2)
+par(mfrow = c(1,1))
 
 
+# Computing MISE AND AMISE
+
+h <- seq(0.04,0.85, length.out = 100)
+R_f2 <- (3/(8*sqrt(pi)))
+R_K <- (2*sqrt(pi))^(-1)
+
+AMISE <- function(n, h){((n*h)^(-1))*R_K + 0.25*(h^4)*R_f2}
+h_AMISE_n <- function(n){(R_K/(n*R_f2))^(1/5)}
 
 
+## *********************************************
+## CASE 1: MISE AND AMISE n = 100
+## *********************************************
+
+# AMISE n = 100
+
+h_AMISE_100 <- h_AMISE_n(n = 100)
+AMISE_100 <- AMISE(n = 100, h = h)
+
+# MISE = 100
+
+MISE_100 <- MISE(h, n = 100, w = 1, mu = 1, sigma2 = 1)
+h_MISE_100 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 100, w = 1, mu = 1, sigma2 = 1)
+
+plot(h, MISE_100, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 100, nor1mix::MW.nm1",
+     ylab = "MISE(h)")
+lines(h, AMISE_100, col = "3")
+abline(v = h_AMISE_100, col = "3")
+abline(v = h_MISE_100)
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c(1,3))
+
+
+## *********************************************
+## CASE 2: MISE AND AMISE n = 200
+## *********************************************
+
+# AMISE n = 200
+
+h_AMISE_200 <- h_AMISE_n(n = 200)
+AMISE_200 <- AMISE(n = 200, h = h)
+
+# MISE = 200
+
+MISE_200 <- MISE(h, n = 200, w = 1, mu = 1, sigma2 = 1)
+h_MISE_200 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 200, w = 1, mu = 1, sigma2 = 1)
+
+plot(h, MISE_200, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 200, nor1mix::MW.nm1",
+     ylab = "MISE(h)")
+lines(h, AMISE_200, col = "3")
+abline(v = h_AMISE_200, col = "3")
+abline(v = h_MISE_200)
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c(1,3))
+
+## *********************************************
+## CASE 3: MISE AND AMISE n = 500
+## *********************************************
+
+# AMISE n = 500
+
+h_AMISE_500 <- h_AMISE_n(n = 500)
+AMISE_500 <- AMISE(n = 500, h = h)
+
+# MISE = 500
+
+MISE_500 <- MISE(h, n = 500, w = 1, mu = 1, sigma2 = 1)
+h_MISE_500 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 500, w = 1, mu = 1, sigma2 = 1)
+
+plot(h, MISE_500, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 500, nor1mix::MW.nm1",
+     ylab = "MISE(h)")
+lines(h, AMISE_500, col = "3")
+abline(v = h_AMISE_500, col = "3")
+abline(v = h_MISE_500)
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c(1,3))
