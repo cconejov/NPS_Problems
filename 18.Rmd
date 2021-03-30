@@ -236,26 +236,31 @@ legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c(1,3))
 
 ## Question 3
 
-Adapt the np_pred_CI function to include the argument type_boot, which can take either the value "naive" or "wild". 
+Adapt the `np_pred_CI` function to include the argument `type_boot`, which can take either the value `"naive"` or `"wild"`. 
 
-1) If `type_boot = "wild"`, then the function must perform the wild bootstrap algorithm described above, implemented from scratch following substeps i–iv. 
+1) If `type_boot = "wild"`, then the function must perform the wild bootstrap algorithm, implemented from scratch following substeps i–iv. 
 
-2) Compare and validate the correct behavior of the confidence intervals, for the two specifications of type_boot, in the model considered in Exercise 5.8 
-(without performing the full simulation study).
+2) Compare and validate the correct behavior of the confidence intervals, for the two specifications of type_boot, in the model considered in Exercise 5.8 (without performing the full simulation study).
 
 For this question we describe briefly the necessary steps related with the implementation of the wild-bootstrap:
 
-Fitted values: $\hat{Y}_{i} := \hat{m}(X_{i};q,h)$ with $i = 1,...,n$.
+First of all, for a given sample with $n$ observations, the  predicted (fitted) values are given by the expression: $\hat{Y}_{i} := \hat{m}(X_{i};q,h)$ with $i = 1,...,n$.
 
-Prediction (Under a new grid): $\hat{m}(x,q,h)$. What about the uncertainty of $\hat{m}(x;q,h)$?
+Then, the uncertainty of $\hat{m}(x,q,h)$ (this includes the consideration of new set of samples) can be measure based on two approaches:
 
-1. Asymptotic approach: $\hat{m}(x;q,h) \pm \hat{se}(\hat{m}(x;q,h))$
+1. Asymptotic approach: $\hat{m}(x;q,h) \pm \hat{se}(\hat{m}(x;q,h))$ where $\hat{se}(\hat{m}(x;q,h))$ is the asymptotic estimation of the standard deviation of $\hat{m}(x;q,h)$
 
-2. Bootstrap (we will focus on will bootstrap)
+2. Bootstrap: In this case, we consider two types of bootstrap:
 
-  1. Compute $\hat{m}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x)Y_{i}$ from the original sample $(X_{1}, Y_{1}),...,(X_{n}, Y_{n})$
+  - Naive Bootstrap: From the original sample, we create a new set of IID observations called the *Bootstrap sample*
   
-  2. Enter the wild bootstrap. For $b = 1,...,B$.
+  - Wild Bootstrap: This technique is focused on resampling the residuals. Similar to the *residual bootstrap* in which we fixed the covariate $X_{i}$ and generate a new value of $Y_{i}$ using the fitted model and the *noise* from sampling the residuals, additional we generate IID random variables $V_{i}$ (random variable with mean zero and variance 1) and then we can perturbed the residuals. This modification improve the stability of the computations, specially in the presence of heteroskedasticity.
+  
+The algorithm of the computation of the wild boostrap is given in the following steps:
+
+1. Compute $\hat{m}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x)Y_{i}$ from the original sample $(X_{1}, Y_{1}),...,(X_{n}, Y_{n})$
+  
+2. Enter the wild bootstrap. For $b = 1,...,B$.
   
   i. Simulate $V_{1}^{*b},...,V_{n}^{*b}$ to be iid copies of $V$ such that $E[V] = 0$ and $Var[V] = 1$,
   
@@ -266,25 +271,202 @@ Prediction (Under a new grid): $\hat{m}(x,q,h)$. What about the uncertainty of $
   iv. Compute $\hat{m}^{*b}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x) Y_{i}^{*b}$ from $(X_{1}^{*}, Y_{1}^{*b}),...,(X_{n}^{8}, Y_{n}^{*b})$
 
 
-Our first simulation scenario is the following:
+As a result, we modified the function `np_pred_CI`. The inputs of the original function are the following:
+
+1. `npfit`: A np::npreg object (npfit) 
+
+2. `exdat`: Values of the predictors where to carry out prediction (exdat)
+
+3. `B`:     Number of bootstrap iterations.
+
+4.`conf`:  Range of confidence interval
+
+5. `type_CI`: Type of confidence interval. (Normal standard or quantiles)
+
+Additionally, we add three new inputs:
+
+6. `type_boot`: Type of bootstrap procedure. Options: `Naive` and `Wild` bootstrap
+
+7. `perturbed_res`: For the case of `Wild` Bootstrap, we can choose the type of peturbation. As explained before, any random variable with mean $0$ and variance $1$ can be used. As a result, we use two possible perturbation: 
+
+7.1. `normal`: Based on the normal distribution $V_{i} \sim \mathcal{N}(0,1)$  
+
+7.2 `golden`: Based on the *golden section binary variable* $P[V = 1 - \phi] = p$, $P[V = \phi] = 1 - p$ and $p = \frac{\phi + 2}{5}$
+
+8. `seed`: Used for reproducibility. Default option is `seed = 42`
+
+The code of the new version of `np_pred_CI`. We basically create a new `if` condition in order to compute the type of bootstrap resample choose by the user. In the case of the `wild` boostrap, we focus on resampling the residuals of the fitted value $\hat{Y}_{i}$ and the *real* values $Y_{i}$:
+
+```{r eval=FALSE, echo=TRUE}
+# Function to predict and compute confidence intervals for m(x). 
+
+# 1) Inputs
+
+## 1.1) npfit: A np::npreg object (npfit) 
+## 1.2) exdat: Values of the predictors where to carry out prediction (exdat)
+## 1.3) B:     Number of bootstrap iterations.
+## 1.4) conf:  Range of confidence interval
+## 1.5) type_CI: Type of confidence interval. (Based on normal standard or quantiles)
+## 1.6) type_boot: Type of bootstrap procedure. Options Naive and Wild bootstrap
+## 1.7) perturbed_res: Valid only for Wild Bootstrap. Type of perturbation on the residuals. Options are "normal"or "golden"
+## 1.8) seed:
+
+# 2) Outputs
+
+## 2.1) exdat: Values of the predictors where to carry out prediction
+## 2.2) m_hat: Predicted regression
+## 2.3) lwr:   Lower confidence interval
+## 2.4) upr:   Upper confidence interval
+
+np_pred_CI <- function(npfit, 
+                       exdat, 
+                       B = 200, 
+                       conf = 0.95,
+                       type_CI = c("standard", "quantiles")[1],
+                       type_boot = c("naive", "wild")[1],
+                       perturbed_res = c("normal", "golden")[1],
+                       seed = 42) {
+  
+  # Fix seed
+  set.seed(seed)
+  
+  # Extract predictors
+  xdat <- npfit$eval
+  
+  # Extract response, using a trick from np::npplot.rbandwidth
+  tt <- terms(npfit$bws)
+  tmf <- npfit$bws$call[c(1, match(c("formula", "data"),
+                                   names(npfit$bws$call)))]
+  tmf[[1]] <- as.name("model.frame")
+  tmf[["formula"]] <- tt
+  tmf <- eval(tmf, envir = environment(tt))
+  ydat <- model.response(tmf)
+```
+  
+```{r eval=FALSE, echo=TRUE} 
+  # Predictions m_hat from the original sample
+  m_hat <- np::npreg(txdat = xdat, 
+                     tydat = ydat, 
+                     exdat = exdat,
+                     bws   = npfit$bws)$mean
+  
+  if (type_boot == "naive") {
+    
+    # Function for performing naive bootstrap
+    boot_function_naive <- function(data, indices) {
+      np::npreg(txdat = xdat[indices,], 
+                tydat = ydat[indices],
+                exdat = exdat, 
+                bws   = npfit$bws)$mean
+    }
+    
+    # Carry out the bootstrap estimator
+    m_hat_star <- boot::boot(data = data.frame(xdat), 
+                             statistic = boot_function_naive,
+                             R = B)$t
+    
+  } else if (type_boot == "wild") {
+    
+    # Sample size of the predictors
+    n <- length(xdat)
+    
+    # Y fitted
+    Y_hat <- npfit$mean
+    
+    # Ordinary residuals
+    residuals_O <- Y_hat - ydat
+    
+    # Type of perturbation
+    if(perturbed_res == "normal"){
+      
+      # Function for performing wild bootstrap
+      boot_function_wild <- function(data, indices) {
+        
+        # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
+        V_n <- rnorm(n)
+        
+        # Step iii. Obtain the bootstrap sample
+        ydat_bt <- Y_hat + data[indices]*V_n
+        
+        np::npreg(txdat = xdat, 
+                  tydat = ydat_bt,
+                  exdat = exdat, 
+                  bws = npfit$bws)$mean
+      }
+      
+      # Step iv. Carry out the wild bootstrap estimator
+      m_hat_star <- boot::boot(data = residuals_O, 
+                               statistic = boot_function_wild,
+                               R = B)$t
+      
+      
+    } else if(perturbed_res == "golden"){
+      
+      # Function for performing wild bootstrap
+      boot_function_wild <- function(data, indices) {
+        
+        # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
+        phi <- (1 + sqrt(5))/2
+        prob <- (phi + 2)/5  
+        
+        
+        golden <- sample(x = c(1-phi,phi), size = n, prob = c(prob, 1 - prob), replace=T)
+        
+        # Step iii. Obtain the bootstrap sample
+        ydat_bt <- Y_hat + data[indices]*golden
+        
+        np::npreg(txdat = xdat, 
+                  tydat = ydat_bt,
+                  exdat = exdat, 
+                  bws = npfit$bws)$mean
+      }
+      
+      # Step iv. Carry out the wild bootstrap estimator
+      m_hat_star <- boot::boot(data = residuals_O, 
+                               statistic = boot_function_wild,
+                               R = B)$t
+      
+    }
+    
+    else{stop("Incorrect type of peturbation")}
+    
+  }else{stop("Incorrect type_boot")}
+  
+  # Confidence intervals
+  alpha <- 1 - conf
+  
+  if (type_CI == "standard") {
+    
+    z <- qnorm(p = 1 - alpha / 2)
+    se <- apply(m_hat_star, 2, sd)
+    lwr <- m_hat - z * se
+    upr <- m_hat + z * se
+    
+  } else if (type_CI == "quantiles") {
+    
+    q <- apply(m_hat_star, 2, quantile, probs = c(alpha / 2, 1 - alpha / 2))
+    lwr <- q[1, ]
+    upr <- q[2, ]
+    
+  } else {
+    stop("Incorrect type_CI")
+  }
+  # Return evaluation points, estimates, and confidence intervals
+  return(data.frame("exdat" = exdat, "m_hat" = m_hat, "lwr" = lwr, "upr" = upr))
+}
+```
+
+Finally, we compare and validate the correct behavior of the confidence intervals, for the two specifications of `type_boot` and the two types of perturbations. For this purpose, we simulate the following sample of size $n = 100$ from the regression model $Y = m(x) + \epsilon$ where $m(x) = 0.25x^{2} - 0.75x + 3$, with $X \sim \mathcal{N}(0, 1.5^{2})$ and $\epsilon \sim \mathcal(0, 0.75^{2})$.
+
+We compute $95\%$ confidence intervals for $m(x)$ along `x <- seq(-5, 5, by = 0.1)`.
+
+
 
 
 ```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
 # Charge to the environment.Do not show results and code
 
 source("R_Code/np_pred_CI.R")
-
-set.seed(12345)
-B <- 500
-n <- 100
-eps <- rnorm(n, sd = 0.75)
-m <- function(x) 0.25*x^2 - 0.75*x + 3
-X <- rnorm(n, sd = 1.5)
-Y <- m(X) + eps
-
-bw1 <- np::npregbw(formula = Y ~ X, regtype = "lc")
-fit1 <- np::npreg(bw1)
-
 set.seed(12345)
 B <- 500
 n <- 100
@@ -294,8 +476,7 @@ X <- rnorm(n, sd = 1.5)
 Y <- m(X) + eps
 
 # The spinner can be omitted with
-options(np.messages = TRUE)
-
+options(np.messages = FALSE)
 bw1 <- np::npregbw(formula = Y ~ X, regtype = "lc")
 fit1 <- np::npreg(bw1)
 ```
@@ -303,8 +484,7 @@ fit1 <- np::npreg(bw1)
 
 
 ```{r q3plot0, echo=FALSE, fig.width = 12, fig.height = 5, fig.cap = "Bootstrap intervals: Default option npplot\\label{fig:q3plot0}"}
-
-par(mforw = c(1,2))
+par(mfrow = c(1,2))
 # Normal approximation confidence intervals + extraction of errors
 npplot_std <- plot(fit1, 
                    plot.errors.method = "bootstrap",

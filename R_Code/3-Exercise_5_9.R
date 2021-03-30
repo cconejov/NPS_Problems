@@ -17,13 +17,15 @@ m <- function(x) 0.25*x^2 - 0.75*x + 3
 X <- rnorm(n, sd = 1.5)
 Y <- m(X) + eps
 
+
+plot(X,Y, main = "Simulated observations")
+
 bw1 <- np::npregbw(formula = Y ~ X, regtype = "lc")
 fit1 <- np::npreg(bw1)
 summary(fit1)
 
 #Asymptotic standard errors
 fit1$merr
-
 
 # Normal approximation confidence intervals + extraction of errors
 npplot_std <- plot(fit1, 
@@ -90,7 +92,11 @@ lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
 lines(ci1$exdat, ci1$m_hat, col = 3)
 lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
+points(X,Y)
 
+Y
+   
+ci1$lwr
 
 
 ## Wild bootstrap (Normal perturbation)

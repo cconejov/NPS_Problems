@@ -126,10 +126,9 @@ np_pred_CI <- function(npfit,
       
     }
     
-    else{   stop("Incorrect type of peturbation")}
-  }else{   stop("Incorrect type_boot")}
-  
-  
+    else{stop("Incorrect type of peturbation")}
+    
+  }else{stop("Incorrect type_boot")}
   
   # Confidence intervals
   alpha <- 1 - conf
