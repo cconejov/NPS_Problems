@@ -42,7 +42,7 @@ np_pred_CI <- function(npfit,
   tmf <- eval(tmf, envir = environment(tt))
   ydat <- model.response(tmf)
   
-
+  
   # Predictions m_hat from the original sample
   m_hat <- np::npreg(txdat = xdat, 
                      tydat = ydat, 
@@ -82,16 +82,16 @@ np_pred_CI <- function(npfit,
       # Function for performing wild bootstrap
       boot_function_wild <- function(data, indices) {
         
-      # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
+        # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
         V_n <- rnorm(n)
         
-      # Step iii. Obtain the bootstrap sample
-      ydat_bt <- Y_hat + data[indices]*V_n
+        # Step iii. Obtain the bootstrap sample
+        ydat_bt <- Y_hat + data[indices]*V_n
         
-      np::npreg(txdat = xdat, 
-                tydat = ydat_bt,
-                exdat = exdat, 
-                bws = npfit$bws)$mean
+        np::npreg(txdat = xdat, 
+                  tydat = ydat_bt,
+                  exdat = exdat, 
+                  bws = npfit$bws)$mean
       }
       
       # Step iv. Carry out the wild bootstrap estimator
@@ -108,8 +108,8 @@ np_pred_CI <- function(npfit,
         # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
         phi <- (1 + sqrt(5))/2
         prob <- (phi + 2)/5  
-  
-
+        
+        
         golden <- sample(x = c(1-phi,phi), size = n, prob = c(prob, 1 - prob), replace=T)
         
         # Step iii. Obtain the bootstrap sample
@@ -129,11 +129,8 @@ np_pred_CI <- function(npfit,
     }
     
     else{   stop("Incorrect type of peturbation")}
-  }else{   stop("Incorrect type__boot")}
-    
-    
-    
- 
+  }else{   stop("Incorrect type_boot")}
+  
   
   
   # Confidence intervals
