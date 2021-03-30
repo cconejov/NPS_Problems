@@ -1,8 +1,8 @@
 # Read data
 rm(list = ls())
 
-temps_7 <- read.table(file = "data/temps-7.txt", header = TRUE)
-temps_other <- read.table(file = "data/temps-other.txt", header = TRUE)
+temps_7 <- read.table(file = "temps-7.txt", header = TRUE)
+temps_other <- read.table(file = "temps-other.txt", header = TRUE)
 
 temps_7 <- temps_7$x
 temps_other <- temps_other$x
