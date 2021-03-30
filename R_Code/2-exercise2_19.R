@@ -143,3 +143,9 @@ lines(h, AMISE_500, col = "3")
 abline(v = h_AMISE_500, col = "3")
 abline(v = h_MISE_500)
 legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c(1,3))
+
+# Case 2: nor1mix::MW.nm =================================
+
+
+
+# Case 2: nor1mix::MW.nm =================================
