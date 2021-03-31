@@ -100,7 +100,7 @@ par(mfrow = c(1,1))
 
 bw.nrd(x = pasttemps) 
 
-# [1] 1.151129
+#  1.151129
 
 #similar to:
 
@@ -109,23 +109,23 @@ lengthpasttemps <- length(pasttemps)
 iqr <- diff(quantile(pasttemps, c(0.25, 0.75))) / diff(qnorm(c(0.25, 0.75))) 
 1.06 * lengthpasttemps^(-1/5) * min(sd(pasttemps), iqr)
 
-# [1] 1.151129
+#  1.151129
 
 
 #Problematic temperatures
 
 bw.nrd(x = problemtemps) 
 
-# [1] 0.873937
+#  0.873937
 
 #similar to:
 
-lengthproblemtemps <- length(problemtemps)
+lengthproblemtemps <- length(problemtemps) 
 
 iqr <- diff(quantile(problemtemps, c(0.25, 0.75))) / diff(qnorm(c(0.25, 0.75))) 
 1.06 * lengthproblemtemps^(-1/5) * min(sd(problemtemps), iqr)
 
-# [1] 0.8797933
+#  0.8797933
 
 
 
@@ -136,26 +136,26 @@ iqr <- diff(quantile(problemtemps, c(0.25, 0.75))) / diff(qnorm(c(0.25, 0.75)))
 
 bw.SJ(x = pasttemps, method = "dpi")
 
-# [1] 0.841367
+#  0.841367
 
 # Similar but faster:
 
 ks::hpi(x = pasttemps) 
 
-# [1] 0.8413892
+#  0.8413892
 
 
 #Problematic temperatures
 
 bw.SJ(x = problemtemps, method = "dpi")
 
-# [1] 0.6303672
+#  0.6303672
 
 # Similar but faster:
 
 ks::hpi(x = problemtemps) 
 
-# [1] 0.6307256
+#  0.6307256
 
 
 
@@ -168,13 +168,13 @@ ks::hpi(x = problemtemps)
 
 bw.ucv(x = pasttemps) #does not provide a warning
 
-# [1] 0.6420771
+# 0.6420771
 
 # UCV R-default function with extended grid
 
 bw.ucv(x = pasttemps, lower = 0.01, upper = 1) #also is fine
 
-# [1] 0.64334
+#  0.64334
 
 #Class function
 
@@ -326,10 +326,38 @@ bw.bcv.mod(x = problemtemps  , nb = 1000L)
 
 
 # Reviewing our results, we see that that the RT gives us bandwidths that are much quite large in comparison with the other bandwidth selectors
-#, which is common for non-normal data like our own. From the literature, we know from  the DPI selector has a convergence rate that is much faster 
-# than the cross validation selectors, LSCV being one of them. However, we do have quite large sample sizes. Therefore, with less
-# sample size it is likely to perform better than the LSCV. Cross-validtory selectors can be much better suited to highly non-normal or rough selectors, where a DPI 
-# selectors can over smooth.  We can see that comparing the plots and the bandwidths below..
+#, which is common for non-normal data like our own. From the literature, we know from  the DPI selector has a convergence rate that is much 
+#  faster than the crossvalidation technique, and therefore is dominant in the literature. We will use DPI for the problematic phone series for this reason.
+# As we discuss further in section b, cross-valditory selectors can be much better suited to highly non-normal or rough selectors, where a DPI 
+# selectors can over smooth. There is quite a bit of volatility in the the past phone series and therefore we use the LSCV. We also use the LSCV
+# over the as the BCV also suffers from being too large, as too bias (although the variance of the LSCV will be higher than would be the BCV).
+
+
+# OPTIMAL BANDWIDTH PLOTS
+
+
+# Past temperature bandwidths:
+# - RT: 1.15
+# - DPI: 0.84
+# - LSCV:  0.64
+# - BCV: 0.89
+
+
+# Problematic temperature bandwidths:
+# - RT: 0.87 
+# - DPI: 0.63
+# - LSCV: 0.65
+# - BCV:  0.61
+
+lscvbwpasttemps <- 0.64
+dpibwproblemtemps <- 0.63
+
+par(mfrow=c(1,2))
+
+plot(kde(x = pasttemps, h = lscvbwpasttemps), main="Past Phone Series with LSCV")
+plot(kde(x = problemtemps, h = dpibwproblemtemps), main="Problem Phone Series with DPI")
+
+
 
 
 # TRANSFORMATIONS
@@ -341,6 +369,7 @@ bw.bcv.mod(x = problemtemps  , nb = 1000L)
 # transfomration could be possible but we will check if this is necesaary in our sample. 
 
 # Past temperatures
+
 
 ## kde with log-transformed data
 kde <- density(log(pasttemps))
@@ -363,6 +392,7 @@ par(mfrow = c(1,1))
 
 
 # Problematic temperatures
+
 
 ## kde with log-transformed data
 kde <- density(log(problemtemps))
@@ -427,7 +457,7 @@ plot(density(x = problemtemps, bw = bw_dpi_problemtemps), xlim = c(-5,65))
 # Past Temperatures
 
 par(mfrow=c(1,2))
-plot(density(x = pasttemps, bw = bw.lscv.pasttemps), xlim = c(-5,65)) #this is incorrect.
+plot(density(x = pasttemps, bw = bw.lscv.pasttemps), xlim = c(-5,65)) 
 plot(density(x = pasttemps, bw = bw_dpi_pasttemps), xlim = c(-5,65))
 
 
@@ -445,13 +475,12 @@ plot(density(x = pasttemps, bw = bw_dpi_pasttemps), xlim = c(-5,65))
 ## temps-7 and temps-other using what you consider are the most adequate bandwidths.
 
 
-# CHANGE THE BANDWIDTHS
 
 # We can create a plot for the two modes of the problematic series below and see the two modes, which are identified by the two lines in green in the plot.
 # We then take the first derivative and can see that the derivaive estimator crosses the the x-axis at thoes times - indicating it is truly a peak in the series.
 
 densMode <- function(x){
-  td <- density(x)
+  td <- density(x, h=)
   maxDens <- which.max(td$y)
   list(x=td$x[maxDens], y=td$y[maxDens])
 }
@@ -495,6 +524,12 @@ abline(v = density(x = problemtemps)$x[posMax], col = "3")
 abline(h = 0)
 
 
+kdde_2 <- ks::kdde(x = problemtemps, deriv.order = 2)
+plot(kdde_2, xlab = "x", main = "Density second derivative estimation")
+abline(v = density(x = problemtemps)$x[pos_Max], col = "3")
+abline(v = density(x = problemtemps)$x[posMax], col = "3")
+abline(h = 0)
+
 
 # We can then see that in the past telephone series that the modes are more difficult to identify as the first derivative crosses the axis many times going to zero.
 # This reflects what we touched upon earlier that there is some distortion in this series particularly towards the high point of the series.
@@ -507,7 +542,9 @@ densMode <- function(x){
 }
 densMode(pasttemps)
 
-par(mfrow=c(1,2))
+
+
+par(mfrow=c(1,3))
 
 kdde_0 <- ks::kdde(x = pasttemps, deriv.order = 0)
 plot(kdde_0, xlab = "x", main = "Density estimation")
@@ -522,16 +559,25 @@ abline(v = density(x = pasttemps)$x[posMax], col = "3")
 abline(h = 0)
 
 
+kdde_2 <- ks::kdde(x = pastemps, deriv.order = 2)
+plot(kdde_2, xlab = "x", main = "Density second derivative estimation")
+abline(v = density(x = pasttemps)$x[pos_Max], col = "3")
+abline(v = density(x = pasttemps)$x[posMax], col = "3")
+abline(h = 0)
+
+
+
 ## Part d. ---- 
 ## Precisely determine the location of the extreme points.
 
-kde <
+ 
+pasttempskde <- kde(x = pasttemps, h = lscvbwpasttemps)
 
 
-plot(kde$x, kde$y)
-density(x = temps_7)$y
-x <- temps_7
-dens <- function(x){density(x = x)$y}
+plot(pasttempskde$x, pasttempskde$y)
+pasttempskde$y
+x <- problemtemps
+dens <- function(x){pasttempskde$y}
 nlm(f = dens, p = 15)
 
 
@@ -547,12 +593,6 @@ extrema
 ## Part e. ---- 
 ## Check with a kernel second derivative that the extreme points are actually modes.
 
-
-kdde_2 <- ks::kdde(x = problemphones, deriv.order = 2)
-plot(kdde_2, xlab = "x", main = "Density second derivative estimation")
-abline(v = density(x = problemtemps)$x[pos_Max], col = "3")
-abline(v = density(x = problemtemps)$x[posMax], col = "3")
-abline(h = 0)
 
 
 

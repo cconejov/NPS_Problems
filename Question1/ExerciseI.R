@@ -65,11 +65,13 @@ range(kde$x)
 # Untransform kde$x so the grid is in (0, infty)
 kde_transf <- kde
 kde_transf$x <- exp(kde_transf$x)
+
 # Transform the density using the chain rule
 kde_transf$y <- kde_transf$y * 1 / kde_transf$x
 
 par(mfrow = c(1,2))
 plot(density(x = temps_other), xlim = c(-5,60), main = 'Past battery')
+
 # Transformed kde
 plot(kde_transf, main = "Past battery: Transformed kde", xlim = c(-5, 60))
 par(mfrow = c(1,1))
@@ -136,6 +138,7 @@ density(x = temps_7)$x[posMax]
 
 
 ## CREATE A FUNCTION:
+
 densMode <- function(x){
   td <- density(x)
   maxDens <- which.max(td$y)
@@ -155,6 +158,7 @@ abline(v = density(x = temps_7)$x[posMax], col = "3")
 
 # Density derivative estimation (automatically chosen bandwidth, but different
 # from kdde_0!)
+
 kdde_1 <- ks::kdde(x = temps_7, deriv.order = 1)
 plot(kdde_1, xlab = "x", main = "Density derivative estimation")
 abline(v = density(x = temps_7)$x[pos_Max], col = "3")

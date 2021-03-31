@@ -9,22 +9,20 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+## Question 1
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Assess S claims of battery failure from temperatures from a sample of previous batteries that experienced failure and from a sample in general 
 
-```{r cars}
-summary(cars)
-```
+a. Perform a kernel density estimation for temps-7 and temps-other using what you consider is the most adequate bandwidth. Since the temperatures are positive, is it required to perform any transformation?.
 
-## Including Plots
+b. Is there any important difference on the results from considering the LSCV selector over the DPI selector?
 
-You can also embed plots, for example:
+c. It seems that in temps-7 there is a secondary mode. Compute a kernel derivative estimation for temps-7 and temps-other using what you consider are the 
+most adequate bandwidths.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
+d. Precisely determine the location of the extreme points
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+e. Check with a kernel second derivative that the extreme points are actually modes.
+
+## Preliminary Work
