@@ -20,13 +20,13 @@
 # Load data
 
 problemphones <- read.table("temps-7.txt", header = TRUE)
-pastphones <- read.delim("temps-other.txt", header = TRUE)
+pastphones <- read.table("temps-other.txt", header = TRUE)
 
 
 # Rename variables
 
-names(problemphones)[names(problemphones) == "x"] <- "problemtemps"
-names(pastphones)[names(pastphones) == "x"] <- "pasttemps"
+names(problemphones) <- "problemtemps"
+names(pastphones) <- "pasttemps"
 
 # Attaching data for ease of use
 
@@ -51,14 +51,14 @@ summary(pastphones)
 p1 <- hist(problemtemps)
 p2 <- hist(pasttemps)
 
-plot( p1, col=rgb(0,0,1,1/4), xlim=c(0,65))  # first histogram
+plot( p1, col=rgb(0,0,1,1/4), xlim=c(0,65), main = "Title")  # first histogram
 plot( p2, col=rgb(1,0,0,1/4), xlim=c(0,65), add=T)  
 
 # Density plots - default bandwidths
 
 par(mfrow = c(1,2))
-plot(density(x = temps_7), xlim = c(-5,65), main = 'Problematic battery')
-plot(density(x = temps_other), xlim = c(-5,65), main = 'Past battery')
+plot(density(x = problemtemps), xlim = c(-5,65), main = 'Problematic battery')
+plot(density(x = pasttemps), xlim = c(-5,65), main = 'Past battery')
 par(mfrow = c(1,1))
 
 ## what is it using is the default bandwidth? I believe that it's the DPI.
@@ -67,6 +67,62 @@ par(mfrow = c(1,1))
 ## Part a. ----
 ## Perform a kernel density estimation for temps-7 and temps-other using what you consider is the most adequate bandwidth. Since the temperatures are positive,
 ## is it required to perform any transformation?.
+
+
+# TRANSFORMATIONS
+
+
+# Transformations must be performed in order to avoid boundary bias, which is to assign probability, with the function mapping, when there is no real density to support it.
+# Hence, we are looking at temperatures that theoretically can take values below zero or close to zero to  a very  high values that can be considered
+# positive infinity. In reality, in our sample, does not have any values close to zero, therefore boundary bias is a risk. From this, we can deduct that a log
+# transfomration could be possible but we will check if this is necesaary in our sample. 
+
+# Past temperatures
+
+par(mfrow=c(1,1))
+
+## kde with log-transformed data
+kde <- density(log(temps_7))
+plot(kde, main = "Kde of transformed data")
+range(kde$x)
+
+# Untransform kde$x so the grid is in (0, infty)
+kde_transf <- kde
+kde_transf$x <- exp(kde_transf$x)
+
+# Transform the density using the chain rule
+kde_transf$y <- kde_transf$y * 1 / kde_transf$x
+
+par(mfrow = c(1,2))
+plot(density(x = temps_other), xlim = c(-5,60), main = 'Past battery')
+
+# Transformed kde
+plot(kde_transf, main = "Past battery: Transformed kde", xlim = c(-5, 60))
+
+
+# Problematic temperatures
+
+
+## kde with log-transformed data
+kde <- density(log(problemtemps), h=dpibwproblemtemps)
+plot(kde, main = "Kde of transformed data")
+range(kde$x)
+
+# Untransform kde$x so the grid is in (0, infty)
+kde_transf <- kde
+kde_transf$x <- exp(kde_transf$x)
+# Transform the density using the chain rule
+kde_transf$y <- kde_transf$y * 1 / kde_transf$x
+
+par(mfrow = c(1,2))
+plot(density(x = temps_7), xlim = c(-5,65), main = 'Problematic battery')
+# Transformed kde
+plot(kde_transf, main = "Problematic battery: Transformed kde", xlim = c(-5, 65))
+par(mfrow = c(1,1))
+
+
+# We see that transformation is not necessary as our estimation does not place probability where there is no density. A transformed curve almost replicates that 
+# of a non-transformed curve.
 
 
 ##    BANDWIDTH SELECTION
@@ -174,7 +230,7 @@ bw.ucv(x = pasttemps) #does not provide a warning
 
 bw.ucv(x = pasttemps, lower = 0.01, upper = 1) #also is fine
 
-#  0.64334
+# 0.64334
 
 #Class function
 
@@ -215,9 +271,9 @@ bw.ucv.mod <- function(x, nb = 1000L,
   h
 }
 
-bw.ucv.mod(x = pasttemps, nb = 5000)
+bw.ucv.mod(x = pasttemps, plot_cv = TRUE, h_grid = 10^seq(-1.5, 0.5, l = 200)) #CORRECT
 
-# minimum occurred at end of the grid - value: 0.001
+# 0.64052
 
 
 
@@ -227,20 +283,19 @@ bw.ucv.mod(x = pasttemps, nb = 5000)
 
 bw.ucv(x = problemtemps) #does not provide a warning
 
-# [1] 0.6524331
+# 0.6524331
 
 # UCV R-default function with extended grid
 
 bw.ucv(x = problemtemps, lower = 0.01, upper = 1) #also is fine
 
-# [1] 0.6514426
+# 0.6514426
 
 # Class function
 
-bw.ucv.mod(x = pasttemps, nb = 5000)
+bw.ucv.mod(x = problemtemps, plot_cv = TRUE, h_grid = 10^seq(-1.5, 0.5, l = 200))
 
-# minimum occurred at end of the grid - value: 0.001
-
+# 0.6555154
 
 
 
@@ -300,7 +355,7 @@ bw.bcv.mod <- function(x, nb = 1000L,
 
 bw.bcv.mod(x = pasttemps  , nb = 1000L)
 
-# [1] 0.8766243
+#  0.8766243
 
 
 # Problematic temperatures
@@ -327,10 +382,9 @@ bw.bcv.mod(x = problemtemps  , nb = 1000L)
 
 # Reviewing our results, we see that that the RT gives us bandwidths that are much quite large in comparison with the other bandwidth selectors
 #, which is common for non-normal data like our own. From the literature, we know from  the DPI selector has a convergence rate that is much 
-#  faster than the crossvalidation technique, and therefore is dominant in the literature. We will use DPI for the problematic phone series for this reason.
+#  faster than the cross-validation technique, and therefore is dominant in the literature. We will use DPI for the problematic phone series for this reason.
 # As we discuss further in section b, cross-valditory selectors can be much better suited to highly non-normal or rough selectors, where a DPI 
-# selectors can over smooth. There is quite a bit of volatility in the the past phone series and therefore we use the LSCV. We also use the LSCV
-# over the as the BCV also suffers from being too large, as too bias (although the variance of the LSCV will be higher than would be the BCV).
+# selectors can over smooth. Howver, for our d
 
 
 # OPTIMAL BANDWIDTH PLOTS
@@ -349,73 +403,18 @@ bw.bcv.mod(x = problemtemps  , nb = 1000L)
 # - LSCV: 0.65
 # - BCV:  0.61
 
-lscvbwpasttemps <- 0.64
-dpibwproblemtemps <- 0.63
+dpibwpasttemps <- bw.SJ(x = pasttemps, method = "dpi")
+dpibwproblemtemps <- bw.SJ(x = problemtemps, method = "dpi")
+
+
+kdepasttemps <- kde(x = pasttemps, h = dpibwpasttemps)
+kdeproblemtemos <- kde(x = problemtemps, h = dpibwproblemtemps)
 
 par(mfrow=c(1,2))
 
-plot(kde(x = pasttemps, h = lscvbwpasttemps), main="Past Phone Series with LSCV")
-plot(kde(x = problemtemps, h = dpibwproblemtemps), main="Problem Phone Series with DPI")
+plot(kdepasttemps, main="Past Phone Series with DPI")
+plot(kdeproblemtemos, main="Problem Phone Series with DPI")
 
-
-
-
-# TRANSFORMATIONS
-
-
-# Transformations must be performed in order to avoid boundary bias, which is to assign probability, with the function mapping, when there is no real density to support it.
-# Hence, we are looking at temperatures that theoretically can take values below zero or close to zero to  a very  high values that can be considered
-# postive infinity. In reality, in our sample, does not have any values close to zero, therefore boundary bias is a risk. From this, we can deduct that a log
-# transfomration could be possible but we will check if this is necesaary in our sample. 
-
-# Past temperatures
-
-
-## kde with log-transformed data
-kde <- density(log(pasttemps))
-plot(kde, main = "Kde of transformed data")
-range(kde$x)
-
-# Untransform kde$x so the grid is in (0, infty)
-kde_transf <- kde
-kde_transf$x <- exp(kde_transf$x)
-
-# Transform the density using the chain rule
-kde_transf$y <- kde_transf$y * 1 / kde_transf$x
-
-par(mfrow = c(1,2))
-plot(density(x = temps_other), xlim = c(-5,60), main = 'Past battery')
-
-# Transformed kde
-plot(kde_transf, main = "Past battery: Transformed kde", xlim = c(-5, 60))
-par(mfrow = c(1,1))
-
-
-# Problematic temperatures
-
-
-## kde with log-transformed data
-kde <- density(log(problemtemps))
-plot(kde, main = "Kde of transformed data")
-range(kde$x)
-
-# Untransform kde$x so the grid is in (0, infty)
-kde_transf <- kde
-kde_transf$x <- exp(kde_transf$x)
-# Transform the density using the chain rule
-kde_transf$y <- kde_transf$y * 1 / kde_transf$x
-
-par(mfrow = c(1,2))
-plot(density(x = temps_7), xlim = c(-5,65), main = 'Problematic battery')
-# Transformed kde
-plot(kde_transf, main = "Problematic battery: Transformed kde", xlim = c(-5, 65))
-par(mfrow = c(1,1))
-
-
-# SHOULD WE TAKE THE PROBIT?
-
-# We see that transformation is not necessary as our estimation does not place probability where there is no density. A transformed curve almost replicates that 
-# of a non-transformed curve.
 
 
 ## Part b. ----
@@ -468,6 +467,8 @@ plot(density(x = pasttemps, bw = bw_dpi_pasttemps), xlim = c(-5,65))
 # than cross-validation methods, like LSCV, however, with very volatile or non-normal data the DPI may over smooth. We may be seeing this in practice
 # as the LSCV does have a smaller bandwidth that is capturing the disruption in the past temperatures series. The sample size is also considering larger in the 
 # problematic temperature series so this may allow the two approaches to more closely approach one another.
+
+
 
 
 ## Part c. ----
