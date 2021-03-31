@@ -20,7 +20,7 @@ Compare the MISE and AMISE criteria in three densities in `nor1mix` of your choi
 
 1. Code (2.33) and the AMISE expression for the normal kernel, and compare the two error curves.
 
-2. Compare them for $n = 100, 200, 500$, adding a vertical line to represent the $h_{MISE}$ and $h_{AMISE}$ bandwidths. Describe in detail the results and the major takeaways.
+2. Compare them for $n = 100, 200, 500$, adding a vertical line to represent the $h_{\text{MISE}}$ and $h_{\text{AMISE}}$ bandwidths. Describe in detail the results and the major takeaways.
 
 For this exercise, we require some mathematical ideas that we will develop briefly.
 
@@ -64,7 +64,7 @@ with the expression $R(f^{''})$ given by:
 
 Finally, the bandwidth the minimizes the AMISE is:
 
-(12) $h_{AMISE} = {\left[ {\frac{R(K)}{\mu_{2}^{2}(K)R(f^{''})n}} \right]}^{1/5}$
+(12) $h_{\text{AMISE}} = {\left[ {\frac{R(K)}{\mu_{2}^{2}(K)R(f^{''})n}} \right]}^{1/5}$
 
 Now, we consider our particular case of study. In this case, we *reduce* our analysis considering:
 
@@ -82,29 +82,53 @@ With these two expressions, we can obtain a specific value for the AMISE in equa
 
 (7.1) Squared integral of kernel: $R(K) =  \frac{1}{2 \sqrt{\pi}}$
 
-Expression for equation (11) can be obtained from the following adaption of expression given in *Theorem 4.1*  given by *Marron and Wand (1992)*
+Expression for equation (11) can be obtained from the following adaption of expression given in *Theorem 4.1*  given by *Marron and Wand (1992)* (In particular, taking $s = 2$ in the expression given in the paper)
 
-(11.1) $R(f^{''}) = \int {(f^{''}(x))}^{2} dx =$
+(11.1) $R(f^{''}) = \int {(f^{''}(x))}^{2} dx = \sum_{j=1}^{r} \sum_{j'= 1}^{r} w_{j} w_{j'} \phi_{\sigma_{jj'}}^{4}(\mu_{j} - \mu_{j'})$
 
-With this expression, we obtain the reduced form of the AMISE:
+where $\sigma_{jj'} = {\sigma_{j}^{2} + \sigma_{j'}^{2}}^{1/2}$. Moreover, on order to tackle this expression, we use the *probabilist's Hermite polynomial* of order $4$: $\phi^{(4)} = \phi(x) H_{4}(x) = \phi(x)*(x^{4} - 6x^{2} + 3)$.
+
+With equations (6.1), (7.1) and (11.1), we obtain the reduced form of the AMISE:
 
 (10.1) $\text{AMISE}[\hat{f}(\cdot;h)] = \frac{1}{4}R(f^{''})h^{4} + \frac{1}{2nh\sqrt{\pi}}$
 
-With optimal bandwidth $h_{AMISE}$
+With optimal bandwidth $h_{\text{AMISE}}$ given by:
 
-(12.1) $h_{AMISE} = {\left[ {\frac{{(2 \sqrt{\pi})}^{-1}}{R(f^{''})n}} \right]}^{1/5}$
+(12.1) $h_{\text{AMISE}} = {\left[ {\frac{{(2 \sqrt{\pi})}^{-1}}{R(f^{''})n}} \right]}^{1/5}$
 
-Finally, under this assumptions, we obtain a explicit and exact MISE expression of equation (8):
+Additionally, under these assumptions, we obtain an explicit and exact MISE expression of equation (8):
 
 (14) $\text{MISE}_{r}[\hat{f}(\cdot;h)] = {(2\sqrt{\pi}nh)}^{-1} + \boldsymbol{w}^{'}\{(1 - n^{-1})\Omega_{2} - \Omega_{1} + \Omega_{0}\}\boldsymbol{w}$
 
-with $(\Omega_{a})_{i,j} = \phi_{{(ah^{2} + \sigma_{i}^{2} + \sigma_{j}^{2})}^{1/2}}(\mu_{i} - \mu_{j})$ for $i,j = 1,...,r$
+Where:
+
+(15) $(\Omega_{a})_{i,j} = \phi_{{(ah^{2} + \sigma_{i}^{2} + \sigma_{j}^{2})}^{1/2}}(\mu_{i} - \mu_{j})$ for $i,j = 1,...,r$
 
 Finally, we can proceed with a numeric approach over equation (14) and obtain:
 
-(15) $\text{arg min}_{h > 0} \text{MISE}[\hat{f}(\cdot;h)]$
+(16) $\text{arg min}_{h > 0} \text{MISE}[\hat{f}(\cdot;h)]$
 
-We start with an easy example using the dataset `nor1mix::MW.nm1` that is distributed according to $\mathcal{N}(0,1)$
+With this mathematical review, we are able to compare the MISE and AMISE criteria. We code the following functions isn `R`:
+
+* `omega_a()`: Compute the matrix  $(\Omega_{a})_{i,j}$ defined in equation (15).
+
+* `omega()`: Compute the `scalar` given by the following vector and matrix operations of equation (14): $\Omega = \boldsymbol{w}^{'}\{(1 - n^{-1})\Omega_{2} - \Omega_{1} + \Omega_{0}\}\boldsymbol{w}$
+
+* `MISE()`: Useful for computing the expression of equation (14).
+
+* `AMISE()`: Useful for computing the expression of equation (10.1). We also code the auxiliary functions `Hermite_4()` and `R_f2()` related to equation (11.1).
+
+* Value of $h_{\text{AMISE}}$ is obtained from the code function `h_AMISE_n()`. Value of $h_{\text{MISE}}$ is obtained numerically from equations (15) and (15) using `optimize()`.
+
+
+We consider in particular the following three densities of `nor1mix` whose parameter are available in [R Help](https://marronwebfiles.sites.oasis.unc.edu/OldResearch/parameters/nmpar.m)
+
+* `MW.nm1`: Gaussian  $\mathcal{N}(0,1)$
+
+* `MW.nm2`: Skewed $.2 \mathcal{N}(-.3, 1.44) + .2 \mathcal{N}(.3, .64) + .6 \mathcal{N}(1, 4/9)$
+
+* `MW.nm6`: Bimodal $.5 \mathcal{N}(-1, 4/9) + .5 \mathcal{N}(1, 4/9)$
+
 
 ```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
 # Charge to the environment.Do not show results and code
@@ -205,7 +229,6 @@ R_f2 <- function(w, mu, sigma2){
   return(sum_int)
 }
 
-
 # Inputs: =================================
 # Useful for all scenarios
 
@@ -248,6 +271,8 @@ MISE_500 <- MISE(h, n = 500, w = 1, mu = 1, sigma2 = 1)
 h_MISE_500 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 500, w = 1, mu = 1, sigma2 = 1)
 ```
 
+In the case  using the dataset `nor1mix::MW.nm1` figure \ref{fig:q2plot0} shows the histograms for the sample distribution for $n = 100, 200, 500$. As expected, behavior of the sample improve when we increase the number of observations.
+
 ```{r q2plot0, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "Histograms from sample obtained from n = 100, 200 and 500 for object MW.nm1 \\label{fig:q2plot0}"}
 # Histogram plots
 par(mfrow = c(1,3))
@@ -259,7 +284,9 @@ hist(x500, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm1 n = 500")
 lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm1), col = 2)
 ```
 
+Figure \ref{fig:q2plot1} shows the MISE and AMISE related to `nor1mix::MW.nm1`. The values of $h_{\text{AMISE}}$ are `r round(h_AMISE_100,3)`, `r round(h_AMISE_200,3)` and `round(h_AMISE_500,3)`. On the hand values of $h_{\text{MISE}}$ are `r round(h_MISE_100$minimum,3)`, `r round(h_MISE_200$minimum,3)` and `round(h_MISE_500$minimum,3))` for $n = 100, 200, 500$. In the three curves, when we reduce the number of the bandwidth, the MISE and AMISE values are quite similar. Additionally, we can see the effect of increasing the number of samples $n$ in the $y$ axis of the plot. (The scaled is reduced). So, the difference between both
 
+In this case, when we increase the number of samples $n$ and reduce the value of the bandwidth, the curves for MISE and
 
 ```{r q2plot1, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "MISE and AMISE for range bandwith between 0.04 and 0.85\\label{fig:q2plot1}"}
 par(mfrow = c(1,3))

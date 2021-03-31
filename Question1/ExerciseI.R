@@ -7,6 +7,8 @@ temps_other <- read.table(file = "temps-other.txt", header = TRUE)
 temps_7 <- temps_7$x
 temps_other <- temps_other$x
 
+sum
+
 
 ##a. Perform a kernel density estimation for temps-7 and temps-other using what you consider is
 ## the most adequate bandwidth. Since the temperatures are positive, is it required to perform any
