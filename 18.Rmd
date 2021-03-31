@@ -7,20 +7,28 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(fig.width=5, fig.height=5)
 ```
 
-## Question 1
+# Question 1
 
 
 \newpage
 
-## Question 2
+# Question 2
 
-Compare the MISE and AMISE criteria in three densities in `nor1mix` of your choice.
+### Problem Description
+
+Compare the MISE and AMISE criteria in three densities in a `nor1mix` of your choice.
 
 1. Code (2.33) and the AMISE expression for the normal kernel, and compare the two error curves.
 
-2. Compare them for $n = 100, 200, 500$, adding a vertical line to represent the $h_{\text{MISE}}$ and $h_{\text{AMISE}}$ bandwidths. Describe in detail the results and the major takeaways.
+2. Compare them for $n = 100, 200, 500$, adding a vertical line to represent the $h_{MISE}$ and $h_{AMISE}$ bandwidths. Describe in detail the results and the major takeaways.
+
+### Response
+
 
 For this exercise, we require some mathematical ideas that we will develop briefly.
 
@@ -30,23 +38,24 @@ We start with the KDE estimator $\hat{f}(x;h) = \sum_{i = 1}^{n} K_{h}(x - X_{i}
 
 (2) $\text{Var}[\hat{f}(x;h)] = \frac{1}{n}{((K_{h}^{2}*f)(x) - {(K_{h} * f)}^{2}(x))}$
 
-Then, we develop some assymptotic expressions for (1) and (2):
+Then, we develop some asymptotic expressions for (1) and (2):
 
 (3) $E[\hat{f}(x;h)] - f(x) = \text{Bias}[\hat{f}(x;h)] = \frac{1}{2}\mu_{2}(K)f^{''}(x)h^{2} + o(h^{2})$
 
 (4) $\text{Var}[\hat{f}(x;h)] = \frac{R(K)}{nh}f(x) + o({(nh)}^{-1})$
 
-Then, from whe equations (3) and (4) we obtain the following expression for the MSE:
+Then, from equations (3) and (4) we obtain the following expression for the MSE:
 
 (5) $\text{MSE}[\hat{f}(x;h)] = \frac{\mu_{2}^{2}(K)}{4}{(f^{''}(x))}^{2}h^{4} + \frac{R(K)}{nh}f(x) + o(h^{4} + {(nh)}^{-1})$
 
-In equations (3), (4) and (5) we have:
+It is important to note that in (3), (4) and (5) we define $K$ and $R(K)$ as:
 
 (6) Second order moment of $K$: $\mu_{2}(K) := \int z^{2}K(z) dz$
 
 (7) Squared integral of kernel: $R(K) := \int {(K(x))}^{2} dx$
 
-Then, we use $\text{MISE}[\hat{f}(\cdot;h)]$ as global error criteria for measuring the performance of $\hat{f}$ in relation to the target density $f$.
+We are able to define $\text{MISE}[\hat{f}(\cdot;h)]$ as global error criteria for measuring the performance of $\hat{f}$ in relation to the target density $f$ by taking the 
+the intergral of the of MSE.
 
 (8) $\text{MISE}[\hat{f}(\cdot;h)] = \int \text{MSE}[\hat{f}(x;h)]$ 
 
@@ -54,7 +63,7 @@ Therefore, we obtain the following asymptotic expansion for the MISE:
 
 (9) $\text{MISE}[\hat{f}(\cdot;h)] = \frac{1}{4} \mu_{2}^{2}(K)R(f^{''})h^{4} + \frac{R(K)}{nh} + o(h^{4} + {(nh)}^{-1})$
 
-We define the dominating part of equation (9) as $\text{AMISE}[\hat{f}(\cdot;h)]$. In particular:
+We define the dominant part of equation (9) (the little $o$ will asymptotically approach zero more quickly) as $\text{AMISE}[\hat{f}(\cdot;h)]$. In particular:
 
 (10) $\text{AMISE}[\hat{f}(\cdot;h)] = \frac{1}{4} \mu_{2}^{2}(K)R(f^{''})h^{4} + \frac{R(K)}{nh}$
 
@@ -62,41 +71,39 @@ with the expression $R(f^{''})$ given by:
 
 (11) $R(f^{''}) = \int {(f^{''}(x))}^{2} dx$
 
-Finally, the bandwidth the minimizes the AMISE is:
+We can see, finally, the bandwidth that minimizes the AMISE is:
 
-(12) $h_{\text{AMISE}} = {\left[ {\frac{R(K)}{\mu_{2}^{2}(K)R(f^{''})n}} \right]}^{1/5}$
+(12) $h_{AMISE} = {\left[ {\frac{R(K)}{\mu_{2}^{2}(K)R(f^{''})n}} \right]}^{1/5}$
 
-Now, we consider our particular case of study. In this case, we *reduce* our analysis considering:
+Now, we consider our particular case of study. In this case, we use the following assumptions to *reduce* our analysis and proceed in our analysis
 
 a) A normal kernel $K_{h}(\cdot)$ with distribution $\mathcal{N}(0,1)$
 
-b) The density function $f$ is based on the family of normal $r$-mixtures:
+b) The density function $f$ is based on the family of normal $r$-mixtures, therefore we obtain: 
 
 (13) $f(x; \mu, \sigma, \boldsymbol{w}) = \sum_{j = 1}^{r} w_{j}\phi_{\sigma_{j}}(x - \mu_{j})$
 
 where $w_{j} \geq 0$, $j = 1,...,r$ and $\sum_{j=1}^{r} w_{j} = 1$.
 
-With these two expressions, we can obtain a specific value for the AMISE in equation (10). With assumption a), we obtain the following expressions for equations (6) and (7)
+With these two expressions, we can obtain a specific value for the AMISE in equation (10). Utilizing assumption a), we obtain the following expressions for equations (6) and (7):
 
 (6.1) Second order moment of $K$: $\mu_{2}(K) =  1$
 
 (7.1) Squared integral of kernel: $R(K) =  \frac{1}{2 \sqrt{\pi}}$
 
-Expression for equation (11) can be obtained from the following adaption of expression given in *Theorem 4.1*  given by *Marron and Wand (1992)* (In particular, taking $s = 2$ in the expression given in the paper)
+Expression for equation (11) can also be derived following  *Theorem 4.1* from *Marron and Wand (1992)*
 
-(11.1) $R(f^{''}) = \int {(f^{''}(x))}^{2} dx = \sum_{j=1}^{r} \sum_{j'= 1}^{r} w_{j} w_{j'} \phi_{\sigma_{jj'}}^{4}(\mu_{j} - \mu_{j'})$
+(11.1) $R(f^{''}) = \int {(f^{''}(x))}^{2} dx =$
 
-where $\sigma_{jj'} = {\sigma_{j}^{2} + \sigma_{j'}^{2}}^{1/2}$. Moreover, on order to tackle this expression, we use the *probabilist's Hermite polynomial* of order $4$: $\phi^{(4)} = \phi(x) H_{4}(x) = \phi(x)*(x^{4} - 6x^{2} + 3)$.
-
-With equations (6.1), (7.1) and (11.1), we obtain the reduced form of the AMISE:
+With this expression, we obtain the reduced form of the AMISE:
 
 (10.1) $\text{AMISE}[\hat{f}(\cdot;h)] = \frac{1}{4}R(f^{''})h^{4} + \frac{1}{2nh\sqrt{\pi}}$
 
-With optimal bandwidth $h_{\text{AMISE}}$ given by:
+With optimal bandwidth $h_{AMISE}$
 
-(12.1) $h_{\text{AMISE}} = {\left[ {\frac{{(2 \sqrt{\pi})}^{-1}}{R(f^{''})n}} \right]}^{1/5}$
+(12.1) $h_{AMISE} = {\left[ {\frac{{(2 \sqrt{\pi})}^{-1}}{R(f^{''})n}} \right]}^{1/5}$
 
-Additionally, under these assumptions, we obtain an explicit and exact MISE expression of equation (8):
+Finally, under this assumptions, we obtain a explicit and exact MISE expression of equation (8):
 
 (14) $\text{MISE}_{r}[\hat{f}(\cdot;h)] = {(2\sqrt{\pi}nh)}^{-1} + \boldsymbol{w}^{'}\{(1 - n^{-1})\Omega_{2} - \Omega_{1} + \Omega_{0}\}\boldsymbol{w}$
 
@@ -104,15 +111,15 @@ Where:
 
 (15) $(\Omega_{a})_{i,j} = \phi_{{(ah^{2} + \sigma_{i}^{2} + \sigma_{j}^{2})}^{1/2}}(\mu_{i} - \mu_{j})$ for $i,j = 1,...,r$
 
-Finally, we can proceed with a numeric approach over equation (14) and obtain:
+Finally, we can proceed evaluating numerically with equation (14) and obtain:
 
 (16) $\text{arg min}_{h > 0} \text{MISE}[\hat{f}(\cdot;h)]$
 
-With this mathematical review, we are able to compare the MISE and AMISE criteria. We code the following functions isn `R`:
+With this mathematical review, we are able to compare the MISE and AMISE criteria. We code the following functions in `R`:
 
-* `omega_a()`: Compute the matrix  $(\Omega_{a})_{i,j}$ defined in equation (15).
+* `omega_a()`: Computes the matrix  $(\Omega_{a})_{i,j}$ defined in equation (15).
 
-* `omega()`: Compute the `scalar` given by the following vector and matrix operations of equation (14): $\Omega = \boldsymbol{w}^{'}\{(1 - n^{-1})\Omega_{2} - \Omega_{1} + \Omega_{0}\}\boldsymbol{w}$
+* `omega()`: Computes the `scalar` given by the following vector and matrix operations of equation (14): $\Omega = \boldsymbol{w}^{'}\{(1 - n^{-1})\Omega_{2} - \Omega_{1} + \Omega_{0}\}\boldsymbol{w}$
 
 * `MISE()`: Useful for computing the expression of equation (14).
 
@@ -121,7 +128,7 @@ With this mathematical review, we are able to compare the MISE and AMISE criteri
 * Value of $h_{\text{AMISE}}$ is obtained from the code function `h_AMISE_n()`. Value of $h_{\text{MISE}}$ is obtained numerically from equations (15) and (15) using `optimize()`.
 
 
-We consider in particular the following three densities of `nor1mix` whose parameter are available in [R Help](https://marronwebfiles.sites.oasis.unc.edu/OldResearch/parameters/nmpar.m)
+We consider in particular the following three densities of the `nor1mix` package whose parameter are available in [R Help](https://marronwebfiles.sites.oasis.unc.edu/OldResearch/parameters/nmpar.m)
 
 * `MW.nm1`: Gaussian  $\mathcal{N}(0,1)$
 
@@ -271,7 +278,7 @@ MISE_500 <- MISE(h, n = 500, w = 1, mu = 1, sigma2 = 1)
 h_MISE_500 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 500, w = 1, mu = 1, sigma2 = 1)
 ```
 
-In the case  using the dataset `nor1mix::MW.nm1` figure \ref{fig:q2plot0} shows the histograms for the sample distribution for $n = 100, 200, 500$. As expected, behavior of the sample improve when we increase the number of observations.
+In the case  using the data set `nor1mix::MW.nm1` figure \ref{fig:q2plot0} shows the histograms for the sample distribution for $n = 100, 200, 500$ and shows the population value in the red density curve. As expected, when we increase the number of observations the sample histogram approaches the distribution of the population density curve.
 
 ```{r q2plot0, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "Histograms from sample obtained from n = 100, 200 and 500 for object MW.nm1 \\label{fig:q2plot0}"}
 # Histogram plots
@@ -284,7 +291,13 @@ hist(x500, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm1 n = 500")
 lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm1), col = 2)
 ```
 
-Figure \ref{fig:q2plot1} shows the MISE and AMISE related to `nor1mix::MW.nm1`. The values of $h_{\text{AMISE}}$ are `r round(h_AMISE_100,3)`, `r round(h_AMISE_200,3)` and `round(h_AMISE_500,3)`. On the hand values of $h_{\text{MISE}}$ are `r round(h_MISE_100$minimum,3)`, `r round(h_MISE_200$minimum,3)` and `round(h_MISE_500$minimum,3))` for $n = 100, 200, 500$. In the three curves, when we reduce the number of the bandwidth, the MISE and AMISE values are quite similar. Additionally, we can see the effect of increasing the number of samples $n$ in the $y$ axis of the plot. (The scaled is reduced). So, the difference between both
+Figure \ref{fig:q2plot1} below shows a graphcal representation of the MISE and AMISE related to `nor1mix::MW.nm1` for bandwidth ranges between 0.04 and 0.85. The optimal values of $h_{\text{AMISE}}$ are `r round(h_AMISE_100,3)`, `r round(h_AMISE_200,3)` and `r round(h_AMISE_500,3)`. On the other hand,optimal values of $h_{\text{MISE}}$ are `r round(h_MISE_100$minimum,3)`, `r round(h_MISE_200$minimum,3)` and `r round(h_MISE_500$minimum,3)` for $n = 100, 200, 500$. In the three curves, when we reduce the bandwidths, the MISE and AMISE values are quite similar. Additionally, we can see the effect of increasing the number of samples $n$ in the $y$ axis of the plot. (The scale is reduced). So, the difference between both
+
+-- scale changes 
+
+-- gets closer as the sample size get larger they get closer
+
+-- something else
 
 In this case, when we increase the number of samples $n$ and reduce the value of the bandwidth, the curves for MISE and
 
@@ -412,7 +425,9 @@ legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"
 
 \newpage
 
-## Question 3
+# Question 3
+
+### Problem Description
 
 Adapt the `np_pred_CI` function to include the argument `type_boot`, which can take either the value `"naive"` or `"wild"`. 
 
@@ -420,7 +435,9 @@ Adapt the `np_pred_CI` function to include the argument `type_boot`, which can t
 
 2) Compare and validate the correct behavior of the confidence intervals, for the two specifications of type_boot, in the model considered in Exercise 5.8 (without performing the full simulation study).
 
-For this question we describe briefly the necessary steps related to the implementation of the wild-bootstrap:
+### Response
+
+For this question we will describe briefly the necessary steps related to the implementation of the wild-bootstrap:
 
 First of all, for a given sample with $n$ observations, the  predicted (fitted) values are given by the expression: $\hat{Y}_{i} := \hat{m}(X_{i};q,h)$ with $i = 1,...,n$.
 
@@ -430,34 +447,34 @@ Then, the uncertainty of $\hat{m}(x,q,h)$ (this includes the consideration of ne
 
 2. Bootstrap: In this case, we consider two types of bootstrap:
 
-  - Naive Bootstrap: From the original sample, we create a new set of IID observations called the *Bootstrap sample*
+      - Naive Bootstrap: From the original sample, we create a new set of IID observations called the *Bootstrap sample*
   
-  - Wild Bootstrap: This technique is focused on resampling the residuals. Similar to the *residual bootstrap* in which we fixed the covariate $X_{i}$ and generate a new value of $Y_{i}$ using the fitted model and the *noise* from sampling the residuals, additional we generate IID random variables $V_{i}$ (random variable with mean zero and variance 1) and then we can perturb the residuals. This modification improves the stability of the computations, especially in the presence of heteroskedasticity.
+      - Wild Bootstrap: This technique is focused on resampling the residuals. It is similar to the *residual bootstrap* in which we fixed the covariate $X_{i}$ and generate a new value of $Y_{i}$ using the fitted model and the *noise* from sampling the residuals. In addition, we generate IID random variables $V_{i}$ (random variable with mean zero and variance 1) and then we can find the perturbed residuals by multiplying this variable against the residults. This modification improves the stability of the computations, especially in the presence of heteroskedasticity.
   
-The algorithm of the computation of the wild boostrap is given in the following steps:
+The algorithm of the computation of the wild bootstrap is given in the following steps:
 
 1. Compute $\hat{m}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x)Y_{i}$ from the original sample $(X_{1}, Y_{1}),...,(X_{n}, Y_{n})$
   
 2. Enter the wild bootstrap. For $b = 1,...,B$.
   
-  i. Simulate $V_{1}^{*b},...,V_{n}^{*b}$ to be iid copies of $V$ such that $E[V] = 0$ and $Var[V] = 1$,
+     i. Simulate $V_{1}^{*b},...,V_{n}^{*b}$ to be iid copies of $V$ such that $E[V] = 0$ and $Var[V] = 1$,
   
-  ii. Compute the *pertubed residuals* $e_{i}^{*b} = \hat{e}_{i}V_{i}^{*b}$ where $Y_{i}^{*b} := \hat{m}(X_{i};q,h) + e_{i}^{*b}$ for $i = 1,...,n$.
+     ii. Compute the *pertubed residuals* $e_{i}^{*b} = \hat{e}_{i}V_{i}^{*b}$ where $Y_{i}^{*b} := \hat{m}(X_{i};q,h) + e_{i}^{*b}$ for $i = 1,...,n$.
   
-  iii. Obtain the bootstrap sample: $(X_{1}, Y_{1}^{*b}),...,(X_{n}, Y_{n}^{*b})$ where $Y_{i}^{*b} := \hat{m}(X_{i};q,h) + e_{i}^{*b}$ with $i = 1,...,n$.
+     iii. Obtain the bootstrap sample: $(X_{1}, Y_{1}^{*b}),...,(X_{n}, Y_{n}^{*b})$ where $Y_{i}^{*b} := \hat{m}(X_{i};q,h) + e_{i}^{*b}$ with $i = 1,...,n$.
   
-  iv. Compute $\hat{m}^{*b}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x) Y_{i}^{*b}$ from $(X_{1}^{*}, Y_{1}^{*b}),...,(X_{n}^{8}, Y_{n}^{*b})$
+     iv. Compute $\hat{m}^{*b}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x) Y_{i}^{*b}$ from $(X_{1}^{*}, Y_{1}^{*b}),...,(X_{n}^{8}, Y_{n}^{*b})$
 
 
 As a result, we modified the function `np_pred_CI`. The inputs of the original function are the following:
 
-1. `npfit`: A np::npreg object (npfit) 
+1. `npfit`: A `np::npreg` object (npfit) 
 
 2. `exdat`: Values of the predictors were to carry out prediction (exdat)
 
 3. `B`:     Number of bootstrap iterations.
 
-4.`conf`:  Range of confidence interval
+4. `conf`:  Range of confidence interval
 
 5. `type_CI`: Type of confidence interval. (Normal standard or quantiles)
 
@@ -465,11 +482,11 @@ Additionally, we add three new inputs:
 
 6. `type_boot`: Type of bootstrap procedure. Options: `Naive` and `Wild` bootstrap
 
-7. `perturbed_res`: For the case of `Wild` Bootstrap, we can choose the type of perturbation. As explained before, any random variable with mean $0$ and variance $1$ can be used. As a result, we use two possible perturbation: 
+7. `perturbed_res`: For the case of `Wild` bootstrap, we can choose the type of perturbation. As explained before, any random variable with mean $0$ and variance $1$ can be used. As a result, we use two possible perturbation: 
 
-  7.1. `normal`: Based on the normal distribution $V_{i} \sim \mathcal{N}(0,1)$  
+    7.1. `normal`: Based on the normal distribution $V_{i} \sim \mathcal{N}(0,1)$  
 
-  7.2 `golden`: Based on the *golden section binary variable* $P[V = 1 - \phi] = p$, $P[V = \phi] = 1 - p$ and $p = \frac{\phi + 2}{5}$
+    7.2 `golden`: Based on the *golden section binary variable* $P[V = 1 - \phi] = p$, $P[V = \phi] = 1 - p$ and $p = \frac{\phi + 2}{5}$
 
 8. `seed`: Used for reproducibility. Default option is `seed = 42`.
 
@@ -720,7 +737,7 @@ lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
 ```
 
-Finally, figures \ref{fig:q3plot2} and \ref{fig:q3plot3} shows the confidence intervals in case of wild bootstrap with normal and golden section perturbation. In this case, we notice how the confidence interval is in the function of the number of simulated observations. In the case of the tails, especially on the right side, the confidence intervals are wider in relation to the confidence intervals given by the `naive` bootstrap. On the other hand, in the sections of the graph where there is a concentration of simulated observations, the fitted lower and upper confidence intervals are similar for the two bootstrap methodologies.
+Finally, figures \ref{fig:q3plot2} and \ref{fig:q3plot3} shows the confidence intervals in case of wild bootstrap with the normal and golden perturbation. In this case, we notice how the confidence interval is in the function of the number of simulated observations. In the case of the tails, especially on the right side, the confidence intervals are wider in relation to the confidence intervals given by the `naive` bootstrap. On the other hand, in the sections of the graph where there is a concentration of simulated observations, the fitted lower and upper confidence intervals are similar for the two bootstrap methodologies.
 
 ```{r q3plot2, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Function np_pred_CI: Wild Bootstrap and normal perturbation\\label{fig:q3plot2}"}
 ## Wild bootstrap (Normal perturbation)
