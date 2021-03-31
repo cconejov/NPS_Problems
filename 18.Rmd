@@ -75,7 +75,7 @@ We can see, finally, the bandwidth that minimizes the AMISE is:
 
 (12) $h_{AMISE} = {\left[ {\frac{R(K)}{\mu_{2}^{2}(K)R(f^{''})n}} \right]}^{1/5}$
 
-Now, we consider our particular case of study. In this case, we use the following assumptions to *reduce* our analysis and proceed in our analysis
+Now, we consider our particular case of study. In this case, we use the following assumptions to *reduce* our analysis and proceed in our analysis:
 
 a) A normal kernel $K_{h}(\cdot)$ with distribution $\mathcal{N}(0,1)$
 
@@ -93,13 +93,13 @@ With these two expressions, we can obtain a specific value for the AMISE in equa
 
 Expression for equation (11) can also be derived following  *Theorem 4.1* from *Marron and Wand (1992)*
 
-(11.1) $R(f^{''}) = \int {(f^{''}(x))}^{2} dx =$
+(11.1) $R(f^{''}) = \int {(f^{''}(x))}^{2} dx = \sum_{j=1}^{k} \sum_{j'=1}^{k} w_{j}w_{j'}\phi_{\sigma_{jj'}}^{4}(\mu_{j} - \mu_{j'})$
 
-With this expression, we obtain the reduced form of the AMISE:
+Where $\sigma_{jj'} = {(\sigma_{j}^{2} + \sigma_{j'}^{2})}^{1/2}$. Additionally, we use the *Probabilist Hermite Polynomial* of order 4: $\phi^{4}(x) = \phi(x)H_{4}(x) = \phi(x)(x^{4} - 6x^{2} + 3)$. With this expression, we obtain the reduced form of the AMISE:
 
 (10.1) $\text{AMISE}[\hat{f}(\cdot;h)] = \frac{1}{4}R(f^{''})h^{4} + \frac{1}{2nh\sqrt{\pi}}$
 
-With optimal bandwidth $h_{AMISE}$
+With optimal bandwidth $h_{AMISE}$ given by:
 
 (12.1) $h_{AMISE} = {\left[ {\frac{{(2 \sqrt{\pi})}^{-1}}{R(f^{''})n}} \right]}^{1/5}$
 
@@ -127,7 +127,6 @@ With this mathematical review, we are able to compare the MISE and AMISE criteri
 
 * Value of $h_{\text{AMISE}}$ is obtained from the code function `h_AMISE_n()`. Value of $h_{\text{MISE}}$ is obtained numerically from equations (15) and (15) using `optimize()`.
 
-
 We consider in particular the following three densities of the `nor1mix` package whose parameter are available in [R Help](https://marronwebfiles.sites.oasis.unc.edu/OldResearch/parameters/nmpar.m)
 
 * `MW.nm1`: Gaussian  $\mathcal{N}(0,1)$
@@ -136,6 +135,7 @@ We consider in particular the following three densities of the `nor1mix` package
 
 * `MW.nm6`: Bimodal $.5 \mathcal{N}(-1, 4/9) + .5 \mathcal{N}(1, 4/9)$
 
+In the case  using the data set `nor1mix::MW.nm1`, figure \ref{fig:q2plot0} shows the histograms for the sample distribution for $n = 100, 200, 500$ and shows the population value in the red density curve. As expected, when we increase the number of observations the sample histogram approaches the distribution of the population density curve.
 
 ```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
 # Charge to the environment.Do not show results and code
@@ -278,8 +278,6 @@ MISE_500 <- MISE(h, n = 500, w = 1, mu = 1, sigma2 = 1)
 h_MISE_500 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 500, w = 1, mu = 1, sigma2 = 1)
 ```
 
-In the case  using the data set `nor1mix::MW.nm1` figure \ref{fig:q2plot0} shows the histograms for the sample distribution for $n = 100, 200, 500$ and shows the population value in the red density curve. As expected, when we increase the number of observations the sample histogram approaches the distribution of the population density curve.
-
 ```{r q2plot0, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "Histograms from sample obtained from n = 100, 200 and 500 for object MW.nm1 \\label{fig:q2plot0}"}
 # Histogram plots
 par(mfrow = c(1,3))
@@ -291,15 +289,11 @@ hist(x500, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm1 n = 500")
 lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm1), col = 2)
 ```
 
-Figure \ref{fig:q2plot1} below shows a graphcal representation of the MISE and AMISE related to `nor1mix::MW.nm1` for bandwidth ranges between 0.04 and 0.85. The optimal values of $h_{\text{AMISE}}$ are `r round(h_AMISE_100,3)`, `r round(h_AMISE_200,3)` and `r round(h_AMISE_500,3)`. On the other hand,optimal values of $h_{\text{MISE}}$ are `r round(h_MISE_100$minimum,3)`, `r round(h_MISE_200$minimum,3)` and `r round(h_MISE_500$minimum,3)` for $n = 100, 200, 500$. In the three curves, when we reduce the bandwidths, the MISE and AMISE values are quite similar. Additionally, we can see the effect of increasing the number of samples $n$ in the $y$ axis of the plot. (The scale is reduced). So, the difference between both
+Figure \ref{fig:q2plot1} below shows a graphical representation of the MISE and AMISE related to `nor1mix::MW.nm1` for bandwidth ranges between 0.04 and 0.85. The optimal values of $h_{\text{AMISE}}$ are `r round(h_AMISE_100,3)`, `r round(h_AMISE_200,3)` and `r round(h_AMISE_500,3)`. On the other hand,optimal values of $h_{\text{MISE}}$ are `r round(h_MISE_100$minimum,3)`, `r round(h_MISE_200$minimum,3)` and `r round(h_MISE_500$minimum,3)` for $n = 100, 200, 500$ respectively. In the three curves, we can see that for each sample size, we have that $h_{\text{AMISE}} < h_{\text{MISE}}$. So, the asymptotic approximation underestimate the value of $h_{\text{MISE}}$.
 
--- scale changes 
+Additionally, when we reduce the bandwidth size, the MISE and AMISE values are quite similar. Additionally, we can see the effect of increasing the number of samples $n$ in the $y$ axis of the plot. (The scale is reduced). So, the difference between both gets closer as the sample size get larger.
 
--- gets closer as the sample size get larger they get closer
-
--- something else
-
-In this case, when we increase the number of samples $n$ and reduce the value of the bandwidth, the curves for MISE and
+In other words, when we increase the number of samples $n$ and reduce the value of the bandwidth, the curves for MISE and AMISE is quite similar.
 
 ```{r q2plot1, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "MISE and AMISE for range bandwith between 0.04 and 0.85\\label{fig:q2plot1}"}
 par(mfrow = c(1,3))
@@ -334,6 +328,8 @@ legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"
 
 
 ```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+# Family two
+
 # Simulating
 set.seed(42)
 x100 <- nor1mix::rnorMix(n = 100, obj = nor1mix::MW.nm2)
@@ -389,6 +385,11 @@ hist(x500, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm2 n = 500")
 lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm2), col = 2)
 ```
 
+Figure \ref{fig:q2plot2} shows the histograms for the skewed object `MW.nm2`. In figure \ref{fig:q2plot3} we observe the comparisons of MISE($h$) and AMISE($h$). Similar to the previous graphics, the approximation of these curves is suitable for small $h$ but lower for large $h$. 
+However, in this case, we notice how the asymptotic approximation slightly overestimate the value of $h_{\text{MISE}}$, but the difference between $h_{\text{MISE}}$ and $h_{\text{AMISE}}$ are closer than scenario given by `MW.nm1`.
+
+Specifically, values of  $h_{\text{AMISE}}$ are given by `r round(h_AMISE_100,3)`, `r round(h_AMISE_200,3)` and `r round(h_AMISE_500,3)`. On the other hand,optimal values of $h_{\text{MISE}}$ are `r round(h_MISE_100$minimum,3)`, `r round(h_MISE_200$minimum,3)` and `r round(h_MISE_500$minimum,3)` for $n = 100, 200, 500$ respectively.
+
 ```{r q2plot3, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "MISE and AMISE for range bandwith between 0.04 and 0.85\\label{fig:q2plot3}"}
 par(mfrow = c(1,3))
 plot(h, MISE_100, type = "l", 
@@ -397,8 +398,8 @@ plot(h, MISE_100, type = "l",
 lines(h, AMISE_100, col = "blue")
 abline(v = h_AMISE_100, col = "blue")
 abline(v = h_MISE_100)
-text(0.4, 0.06, labels = paste("h_MISE = ", round(h_MISE_100$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
-text(0.18, 0.06, labels = paste("h_AMISE = ", round(h_AMISE_100,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.18, 0.06, labels = paste("h_MISE = ", round(h_MISE_100$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.4, 0.06, labels = paste("h_AMISE = ", round(h_AMISE_100,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
 legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
 plot(h, MISE_200, type = "l", 
      main = "Comparison MISE(h) and AMISE(h) \n n = 200, nor1mix::MW.nm2",
@@ -406,8 +407,8 @@ plot(h, MISE_200, type = "l",
 lines(h, AMISE_200, col = "blue")
 abline(v = h_AMISE_200, col = "blue")
 abline(v = h_MISE_200)
-text(0.4, 0.03, labels = paste("h_MISE = ", round(h_MISE_200$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
-text(0.15, 0.03, labels = paste("h_AMISE = ", round(h_AMISE_200,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.15, 0.03, labels = paste("h_MISE = ", round(h_MISE_200$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.4, 0.03, labels = paste("h_AMISE = ", round(h_AMISE_200,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
 legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
 plot(h, MISE_500, type = "l", 
      main = "Comparison MISE(h) and AMISE(h) \n n = 500, nor1mix::MW.nm2",
@@ -415,11 +416,106 @@ plot(h, MISE_500, type = "l",
 lines(h, AMISE_500, col = "blue")
 abline(v = h_AMISE_500, col = "blue")
 abline(v = h_MISE_500)
-text(0.1, 0.02, labels = paste("h_MISE = ", round(h_MISE_500$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
-text(0.3, 0.02, labels = paste("h_AMISE = ", round(h_AMISE_500,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.3, 0.02, labels = paste("h_MISE = ", round(h_MISE_500$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.1, 0.02, labels = paste("h_AMISE = ", round(h_AMISE_500,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
 legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
+```
+
+```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+# Charge to the environment.Do not show results and code
+
+# Simulating
+set.seed(42)
+x100 <- nor1mix::rnorMix(n = 100, obj = nor1mix::MW.nm6)
+x200 <- nor1mix::rnorMix(n = 200, obj = nor1mix::MW.nm6)
+x500 <- nor1mix::rnorMix(n = 500, obj = nor1mix::MW.nm6)
+
+mu_Bimodal <-  c(-1, 1)
+sigma2_Bimodal <- c(4/9, 4/9)
+w_Bimodal <- c(.5, .5)
+R_f2_Bimodal <- R_f2(w = w_Bimodal, mu = mu_Bimodal, sigma2 = sigma2_Bimodal)
+
+# AMISE n = 100
+
+AMISE_100 <- AMISE(n = 100, h = h, R_K = R_K_N01, R_f2 = R_f2_Bimodal)
+h_AMISE_100 <- h_AMISE_n(n = 100, R_K = R_K_N01, R_f2 = R_f2_Bimodal)
+
+# MISE = 100
+
+MISE_100 <- MISE(h, n = 100, w = w_Bimodal, mu = mu_Bimodal, sigma2 = sigma2_Bimodal)
+h_MISE_100 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 100, w = w_Bimodal, mu = mu_Bimodal, sigma2 = sigma2_Bimodal)
+
+AMISE_200 <- AMISE(n = 200, h = h, R_K = R_K_N01, R_f2 = R_f2_Bimodal)
+h_AMISE_200 <- h_AMISE_n(n = 200, R_K = R_K_N01, R_f2 = R_f2_Bimodal)
+
+# MISE = 200
+
+MISE_200 <- MISE(h, n = 200, w = w_Bimodal, mu = mu_Bimodal, sigma2 = sigma2_Bimodal)
+h_MISE_200 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 200, w = w_Bimodal, mu = mu_Bimodal, sigma2 = sigma2_Bimodal)
+
+AMISE_500 <- AMISE(n = 500, h = h, R_K = R_K_N01, R_f2 = R_f2_Bimodal)
+h_AMISE_500 <- h_AMISE_n(n = 500, R_K = R_K_N01, R_f2 = R_f2_Bimodal)
+
+# MISE = 500
+
+MISE_500 <- MISE(h, n = 500, w = w_Bimodal, mu = mu_Bimodal, sigma2 = sigma2_Bimodal)
+h_MISE_500 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 500, w = w_Bimodal, mu = mu_Bimodal, sigma2 = sigma2_Bimodal)
+```
+
+```{r q2plot4, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "Histograms from sample obtained from n = 100, 200 and 500 for object MW.nm6 (Bimodal) \\label{fig:q2plot4}"}
+# Histogram plots
+par(mfrow = c(1,3))
+hist(x100, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm6 n = 100")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm6), col = 2)
+hist(x200, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm6 n = 200")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm6), col = 2)
+hist(x500, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm6 n = 500")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm6), col = 2)
+
 
 ```
+
+For the object `MW.nm6` Figure \ref{fig:q2plot4} shows the histograms for the Bimodal object. Like figure \ref{fig:q2plot0}, increasing the number of observations conducts to a better fitting to the real population.
+
+
+In figure \ref{fig:q2plot5} we see a similar phenomena than figure \ref{fig:q2plot1}. In this case, the asymptotic MISE underestimate the value for MISE. The minimizers of AMISE($h$) are given by $h_{\text{AMISE}}$ are `r round(h_AMISE_100,3)`, `r round(h_AMISE_200,3)` and `r round(h_AMISE_500,3)`. On the other hand, minimizers of MISE($h$) corresponds to  `r round(h_MISE_100$minimum,3)`, `r round(h_MISE_200$minimum,3)` and `r round(h_MISE_500$minimum,3)` for $n = 100, 200, 500$ respectively.
+
+In this case, we observe how for $n = 500$ the approximation is the same for the first decimal point.
+
+```{r q2plot5, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "MISE and AMISE for range bandwith between 0.04 and 0.85\\label{fig:q2plot5}"}
+par(mfrow = c(1,3))
+plot(h, MISE_100, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 100, nor1mix::MW.nm6",
+     ylab = "MISE(h)")
+lines(h, AMISE_100, col = "blue")
+abline(v = h_AMISE_100, col = "blue")
+abline(v = h_MISE_100)
+text(0.4, 0.06, labels = paste("h_MISE = ", round(h_MISE_100$minimum,3) ), col = "black", cex = 0.5, font = 2, adj = c(0, 0))
+text(0.1, 0.06, labels = paste("h_AMISE = ", round(h_AMISE_100,3) ), col = "blue", cex = 0.5, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
+plot(h, MISE_200, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 200, nor1mix::MW.nm6",
+     ylab = "MISE(h)")
+lines(h, AMISE_200, col = "blue")
+abline(v = h_AMISE_200, col = "blue")
+abline(v = h_MISE_200)
+text(0.4, 0.03, labels = paste("h_MISE = ", round(h_MISE_200$minimum,3) ), col = "black", cex = 0.5, font = 2, adj = c(0, 0))
+text(0.1, 0.03, labels = paste("h_AMISE = ", round(h_AMISE_200,3) ), col = "blue", cex = 0.5, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
+plot(h, MISE_500, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 500, nor1mix::MW.nm2",
+     ylab = "MISE(h)")
+lines(h, AMISE_500, col = "blue")
+abline(v = h_AMISE_500, col = "blue")
+abline(v = h_MISE_500)
+text(0.3, 0.01, labels = paste("h_MISE = ", round(h_MISE_500$minimum,3) ), col = "black", cex = 0.5, font = 2, adj = c(0, 0))
+text(0.05, 0.01, labels = paste("h_AMISE = ", round(h_AMISE_500,3) ), col = "blue", cex = 0.5, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
+```
+
+In general terms, we have the following conclusions:
+
+* From equation (10.1), AMISE($h$) $\to \infty$ as $h \to \infty$. However, in the case of MISE($h$), we see how MISE($h$) increase more slowly than AMISE($h$).
 
 
 

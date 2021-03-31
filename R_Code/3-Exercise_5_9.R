@@ -17,7 +17,6 @@ m <- function(x) 0.25*x^2 - 0.75*x + 3
 X <- rnorm(n, sd = 1.5)
 Y <- m(X) + eps
 
-
 plot(X,Y, main = "Simulated observations")
 
 bw1 <- np::npregbw(formula = Y ~ X, regtype = "lc")
@@ -94,9 +93,6 @@ lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
 points(X,Y)
 
-Y
-   
-ci1$lwr
 
 
 ## Wild bootstrap (Normal perturbation)
@@ -123,6 +119,7 @@ lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
 lines(ci1$exdat, ci1$m_hat, col = 3)
 lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
+points(X,Y)
 
 ## Wild bootstrap (Golden ratio perturbation)
 ci1 <- np_pred_CI(npfit = fit1, 
@@ -147,3 +144,4 @@ lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
 lines(ci1$exdat, ci1$m_hat, col = 3)
 lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
+points(X,Y)
