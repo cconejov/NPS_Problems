@@ -1,0 +1,28 @@
+---
+title: "1-exercise"
+author: "Xavier Bryant"
+date: "30/03/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Question 1
+
+Assess S claims of battery failure from temperatures from a sample of previous batteries that experienced failure and from a sample in general 
+
+a. Perform a kernel density estimation for temps-7 and temps-other using what you consider is the most adequate bandwidth. Since the temperatures are positive, is it required to perform any transformation?.
+
+b. Is there any important difference on the results from considering the LSCV selector over the DPI selector?
+
+c. It seems that in temps-7 there is a secondary mode. Compute a kernel derivative estimation for temps-7 and temps-other using what you consider are the 
+most adequate bandwidths.
+
+d. Precisely determine the location of the extreme points
+
+e. Check with a kernel second derivative that the extreme points are actually modes.
+
+## Preliminary Work
