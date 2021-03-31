@@ -12,26 +12,27 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Question 1
 
 
+\newpage
+
 ## Question 2
 
-Compare the MISE and AMISE criteria in three densities in nor1mix of your choice.
+Compare the MISE and AMISE criteria in three densities in `nor1mix` of your choice.
 
 1. Code (2.33) and the AMISE expression for the normal kernel, and compare the two error curves.
 
 2. Compare them for $n = 100, 200, 500$, adding a vertical line to represent the $h_{MISE}$ and $h_{AMISE}$ bandwidths. Describe in detail the results and the major takeaways.
 
+For this exercise, we require some mathematical ideas that we will develop briefly.
 
-For this exercise wwe require some mathematical ideas that we will developed briefly.
-
-We start with the KDE estimator $\hat{f}(x;h) = \sum_{i = 1}^{n} K_{h}(x - X_{i})$. The expectation and variance for this estimator are given bi the following expressions:
+We start with the KDE estimator $\hat{f}(x;h) = \sum_{i = 1}^{n} K_{h}(x - X_{i})$. The expectation and variance for this estimator are given by the following expressions:
 
 (1) $E[\hat{f}(x;h)] = (K_{h} * f)(x)$.
 
 (2) $\text{Var}[\hat{f}(x;h)] = \frac{1}{n}{((K_{h}^{2}*f)(x) - {(K_{h} * f)}^{2}(x))}$
 
-Then, we develop some assymptotic expression for (1) and (2):
+Then, we develop some assymptotic expressions for (1) and (2):
 
-(3) $E[\hat{f}(x;h)] - f(x) = Bias[\hat{f}(x;h)] = \frac{1}{2}\mu_{2}(K)f^{''}(x)h^{2} + o(h^{2})$
+(3) $E[\hat{f}(x;h)] - f(x) = \text{Bias}[\hat{f}(x;h)] = \frac{1}{2}\mu_{2}(K)f^{''}(x)h^{2} + o(h^{2})$
 
 (4) $\text{Var}[\hat{f}(x;h)] = \frac{R(K)}{nh}f(x) + o({(nh)}^{-1})$
 
@@ -41,19 +42,19 @@ Then, from whe equations (3) and (4) we obtain the following expression for the 
 
 In equations (3), (4) and (5) we have:
 
-(6) $\mu_{2}(K) := \int z^{2}K(z) dz$
+(6) Second order moment of $K$: $\mu_{2}(K) := \int z^{2}K(z) dz$
 
-(7) $R(K) := \int {(K(x))}^{2} dx$
+(7) Squared integral of kernel: $R(K) := \int {(K(x))}^{2} dx$
 
 Then, we use $\text{MISE}[\hat{f}(\cdot;h)]$ as global error criteria for measuring the performance of $\hat{f}$ in relation to the target density $f$.
 
-(8) $\text{MISE}[\hat{f}(\cdot;h)] = \int MSE[\hat{f}(x;h)]$ 
+(8) $\text{MISE}[\hat{f}(\cdot;h)] = \int \text{MSE}[\hat{f}(x;h)]$ 
 
-Then, we obtain the following asymptotic expansion for the MISE:
+Therefore, we obtain the following asymptotic expansion for the MISE:
 
 (9) $\text{MISE}[\hat{f}(\cdot;h)] = \frac{1}{4} \mu_{2}^{2}(K)R(f^{''})h^{4} + \frac{R(K)}{nh} + o(h^{4} + {(nh)}^{-1})$
 
-We define the dominating part of equation (9) as $AMISE[\hat{f}(\cdot;h)]$ defined as:
+We define the dominating part of equation (9) as $\text{AMISE}[\hat{f}(\cdot;h)]$. In particular:
 
 (10) $\text{AMISE}[\hat{f}(\cdot;h)] = \frac{1}{4} \mu_{2}^{2}(K)R(f^{''})h^{4} + \frac{R(K)}{nh}$
 
@@ -63,7 +64,7 @@ with the expression $R(f^{''})$ given by:
 
 Finally, the bandwidth the minimizes the AMISE is:
 
-(12) $h_{AMISE} = \left[ {\frac{R(K)}{\mu_{2}^{2}(K)R(f^{''})n}}^{1/5} \right]$
+(12) $h_{AMISE} = {\left[ {\frac{R(K)}{\mu_{2}^{2}(K)R(f^{''})n}} \right]}^{1/5}$
 
 Now, we consider our particular case of study. In this case, we *reduce* our analysis considering:
 
@@ -75,16 +76,15 @@ b) The density function $f$ is based on the family of normal $r$-mixtures:
 
 where $w_{j} \geq 0$, $j = 1,...,r$ and $\sum_{j=1}^{r} w_{j} = 1$.
 
-With this two expression, we can obtain a specific value for the AMISE in equation (10). With assumption a), we obating the following expressions for equations (6) and (7)
+With these two expressions, we can obtain a specific value for the AMISE in equation (10). With assumption a), we obtain the following expressions for equations (6) and (7)
 
-(6.1) $\mu_{2}(K) =  1$
+(6.1) Second order moment of $K$: $\mu_{2}(K) =  1$
 
-(7.1) $R(K) =  \frac{1}{2 \sqrt{\pi}}$
+(7.1) Squared integral of kernel: $R(K) =  \frac{1}{2 \sqrt{\pi}}$
 
 Expression for equation (11) can be obtained from the following adaption of expression given in *Theorem 4.1*  given by *Marron and Wand (1992)*
 
 (11.1) $R(f^{''}) = \int {(f^{''}(x))}^{2} dx =$
-
 
 With this expression, we obtain the reduced form of the AMISE:
 
@@ -92,8 +92,7 @@ With this expression, we obtain the reduced form of the AMISE:
 
 With optimal bandwidth $h_{AMISE}$
 
-(12.1) $h_{AMISE} = \left[ {\frac{{(2 \sqrt{\pi})}^{-1}}{R(f^{''})n}}^{1/5} \right]$
-
+(12.1) $h_{AMISE} = {\left[ {\frac{{(2 \sqrt{\pi})}^{-1}}{R(f^{''})n}} \right]}^{1/5}$
 
 Finally, under this assumptions, we obtain a explicit and exact MISE expression of equation (8):
 
@@ -105,13 +104,14 @@ Finally, we can proceed with a numeric approach over equation (14) and obtain:
 
 (15) $\text{arg min}_{h > 0} \text{MISE}[\hat{f}(\cdot;h)]$
 
-
-We start with a easy example using the dataset `nor1mix::MW.nm1` that is distributed according to $\mathcal{N}(0,1)$
-
+We start with an easy example using the dataset `nor1mix::MW.nm1` that is distributed according to $\mathcal{N}(0,1)$
 
 ```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
 # Charge to the environment.Do not show results and code
+
 # Functions =================================
+
+## a) Omega_a
 
 omega_a <- function(a, w, h, mu, sigma2){
   k <- length(w)
@@ -127,6 +127,8 @@ omega_a <- function(a, w, h, mu, sigma2){
   return(M)
 }
 
+## a) Omega
+
 omega <- function(w, h, n, mu, sigma2){
   
   omega2 <- omega_a(a = 2, w, h, mu, sigma2)
@@ -135,6 +137,8 @@ omega <- function(w, h, n, mu, sigma2){
   omega <- (1 - (1/n))*omega2 - 2*omega1 + omega0
   return(t(w) %*% omega %*% w)
 }
+
+## c) Explicit MISE 
 
 MISE <- function(h, n, w, mu, sigma2){
   
@@ -147,23 +151,104 @@ MISE <- function(h, n, w, mu, sigma2){
   
 }
 
+## d) Explicit AMISE
 
-AMISE <- function(n, h){((n*h)^(-1))*R_K + 0.25*(h^4)*R_f2}
-h_AMISE_n <- function(n){(R_K/(n*R_f2))^(1/5)}
+## Inputs
+## n: Number of sample observations
+## h: Grid of bandwidth 
+## R_K: Squared integral of kernel:
+## R_f2: Second derivative of Squared integral of density f
 
-```
+AMISE <- function(n, h, R_K, R_f2){((n*h)^(-1))*R_K + 0.25*(h^4)*R_f2}
+
+## e) Optimal AMISE bandwidth
+
+## Inputs
+## n: Number of sample observations.
+## R_K: Squared integral of kernel.
+## R_f2: Second derivative of Squared integral of density f
+
+h_AMISE_n <- function(n, R_K, R_f2){(R_K/(n*R_f2))^(1/5)}
+
+## f) Hermite Polynomial: Useful for the four derivative of Normal density
+
+Hermite_4 <- function(x, mean, sd){
+  
+  H4 <- x^4 - 6*x^2 + 3
+  Normal4 <-  dnorm(x = x, 
+                    mean = mean, 
+                    sd = sd)
+  
+  return(Normal4*H4)
+  
+}
+
+## g) Comute the Second derivative of Squared integral of density f (Normal mixture)
+
+## Inputs
+
+## w: vector of weights
+## mu: Vector of means
+## sigma2: Vector of variance
+
+R_f2 <- function(w, mu, sigma2){
+  
+  k <- length(w)
+  sum_int <- 0
+  for(i in 1:k){
+    for(j in 1:k){
+      sum_int <- sum_int + (w[i]*w[j]*Hermite_4(x = (mu[i] - mu[j]), 
+                                                mean = 0, 
+                                                sd = sqrt(sigma2[i] + sigma2[j])))
+    }
+  }
+  return(sum_int)
+}
 
 
-```{r echo=FALSE}
+# Inputs: =================================
+# Useful for all scenarios
+
+# Density evaluation
+x <- seq(-4, 4, length.out = 400)
+
+# h_grid and Second derivative of the normal kernel
+h <- seq(0.04,0.85, length.out = 100)
+R_K_N01 <- (2*sqrt(pi))^(-1)
+R_f2_f01 <- (3/(8*sqrt(pi)))
+
 # Simulating
 set.seed(42)
 x100 <- nor1mix::rnorMix(n = 100, obj = nor1mix::MW.nm1)
 x200 <- nor1mix::rnorMix(n = 200, obj = nor1mix::MW.nm1)
 x500 <- nor1mix::rnorMix(n = 500, obj = nor1mix::MW.nm1)
 
-# Density evaluation
-x <- seq(-4, 4, length.out = 400)
+# AMISE n = 100
+AMISE_100 <- AMISE(n = 100, h = h, R_K = R_K_N01, R_f2 = R_f2_f01)
+h_AMISE_100 <- h_AMISE_n(n = 100, R_K = R_K_N01, R_f2 = R_f2_f01)
 
+# MISE = 100
+MISE_100 <- MISE(h, n = 100, w = 1, mu = 1, sigma2 = 1)
+h_MISE_100 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 100, w = 1, mu = 1, sigma2 = 1)
+
+# AMISE n = 200
+AMISE_200 <- AMISE(n = 200, h = h, R_K = R_K_N01, R_f2 = R_f2_f01)
+h_AMISE_200 <- h_AMISE_n(n = 200, R_K = R_K_N01, R_f2 = R_f2_f01)
+
+# MISE = 200
+MISE_200 <- MISE(h, n = 200, w = 1, mu = 1, sigma2 = 1)
+h_MISE_200 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 200, w = 1, mu = 1, sigma2 = 1)
+
+# AMISE n = 500
+AMISE_500 <- AMISE(n = 500, h = h, R_K = R_K_N01, R_f2 = R_f2_f01)
+h_AMISE_500 <- h_AMISE_n(n = 500, R_K = R_K_N01, R_f2 = R_f2_f01)
+
+# MISE = 500
+MISE_500 <- MISE(h, n = 500, w = 1, mu = 1, sigma2 = 1)
+h_MISE_500 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 500, w = 1, mu = 1, sigma2 = 1)
+```
+
+```{r q2plot0, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "Histograms from sample obtained from n = 100, 200 and 500 for object MW.nm1 \\label{fig:q2plot0}"}
 # Histogram plots
 par(mfrow = c(1,3))
 hist(x100, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm1 n = 100")
@@ -175,75 +260,491 @@ lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm1), col = 2)
 ```
 
 
-```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
-# Charge to the environment.Do not show results and code
-h <- seq(0.04,0.85, length.out = 100)
-R_f2 <- (3/(8*sqrt(pi)))
-R_K <- (2*sqrt(pi))^(-1)
-```
 
-```{r echo=FALSE}
-# AMISE n = 100
-
-h_AMISE_100 <- h_AMISE_n(n = 100)
-AMISE_100 <- AMISE(n = 100, h = h)
-
-# MISE = 100
-
-MISE_100 <- MISE(h, n = 100, w = 1, mu = 1, sigma2 = 1)
-h_MISE_100 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 100, w = 1, mu = 1, sigma2 = 1)
-
+```{r q2plot1, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "MISE and AMISE for range bandwith between 0.04 and 0.85\\label{fig:q2plot1}"}
+par(mfrow = c(1,3))
 plot(h, MISE_100, type = "l", 
      main = "Comparison MISE(h) and AMISE(h) \n n = 100, nor1mix::MW.nm1",
      ylab = "MISE(h)")
-lines(h, AMISE_100, col = "3")
-abline(v = h_AMISE_100, col = "3")
+lines(h, AMISE_100, col = "blue")
+abline(v = h_AMISE_100, col = "blue")
 abline(v = h_MISE_100)
-legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c(1,3))
-```
-
-
-```{r echo=FALSE}
-
-# AMISE n = 200
-
-h_AMISE_200 <- h_AMISE_n(n = 200)
-AMISE_200 <- AMISE(n = 200, h = h)
-
-# MISE = 200
-
-MISE_200 <- MISE(h, n = 200, w = 1, mu = 1, sigma2 = 1)
-h_MISE_200 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 200, w = 1, mu = 1, sigma2 = 1)
-
+text(0.47, 0.06, labels = paste("h_MISE = ", round(h_MISE_100$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.25, 0.06, labels = paste("h_AMISE = ", round(h_AMISE_100,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
 plot(h, MISE_200, type = "l", 
      main = "Comparison MISE(h) and AMISE(h) \n n = 200, nor1mix::MW.nm1",
      ylab = "MISE(h)")
-lines(h, AMISE_200, col = "3")
-abline(v = h_AMISE_200, col = "3")
+lines(h, AMISE_200, col = "blue")
+abline(v = h_AMISE_200, col = "blue")
 abline(v = h_MISE_200)
-legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c(1,3))
-```
-
-
-```{r echo=FALSE}
-# AMISE n = 500
-
-h_AMISE_500 <- h_AMISE_n(n = 500)
-AMISE_500 <- AMISE(n = 500, h = h)
-
-# MISE = 500
-
-MISE_500 <- MISE(h, n = 500, w = 1, mu = 1, sigma2 = 1)
-h_MISE_500 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 500, w = 1, mu = 1, sigma2 = 1)
-
+text(0.4, 0.03, labels = paste("h_MISE = ", round(h_MISE_200$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.2, 0.03, labels = paste("h_AMISE = ", round(h_AMISE_200,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
 plot(h, MISE_500, type = "l", 
      main = "Comparison MISE(h) and AMISE(h) \n n = 500, nor1mix::MW.nm1",
      ylab = "MISE(h)")
-lines(h, AMISE_500, col = "3")
-abline(v = h_AMISE_500, col = "3")
+lines(h, AMISE_500, col = "blue")
+abline(v = h_AMISE_500, col = "blue")
 abline(v = h_MISE_500)
-legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c(1,3))
+text(0.4, 0.01, labels = paste("h_MISE = ", round(h_MISE_500$minimum,3) ), col = "black", cex = 0.5, font = 2, adj = c(0, 0))
+text(0.2, 0.01, labels = paste("h_AMISE = ", round(h_AMISE_500,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
 ```
 
 
+```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+# Simulating
+set.seed(42)
+x100 <- nor1mix::rnorMix(n = 100, obj = nor1mix::MW.nm2)
+x200 <- nor1mix::rnorMix(n = 200, obj = nor1mix::MW.nm2)
+x500 <- nor1mix::rnorMix(n = 500, obj = nor1mix::MW.nm2)
+
+# Parameters:
+mu_skewed <-  c(-.3, .3, 1)
+sigma2_skewed <- c(1.44, .64, 4/9)
+w_skewed <- c(.2, .2, .6)
+R_f2_skewed <- R_f2(w = w_skewed, mu = mu_skewed, sigma2 = sigma2_skewed)
+
+# AMISE n = 100
+
+AMISE_100 <- AMISE(n = 100, h = h, R_K = R_K_N01, R_f2 = R_f2_skewed)
+h_AMISE_100 <- h_AMISE_n(n = 100, R_K = R_K_N01, R_f2 = R_f2_skewed)
+
+# MISE = 100
+
+MISE_100 <- MISE(h, n = 100, w = w_skewed, mu = mu_skewed, sigma2 = sigma2_skewed)
+h_MISE_100 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 100, w = w_skewed, mu = mu_skewed, sigma2 = sigma2_skewed)
+
+# AMISE n = 200
+
+AMISE_200 <- AMISE(n = 200, h = h, R_K = R_K_N01, R_f2 = R_f2_skewed)
+h_AMISE_200 <- h_AMISE_n(n = 200, R_K = R_K_N01, R_f2 = R_f2_skewed)
+
+# MISE = 200
+
+MISE_200 <- MISE(h, n = 200, w = w_skewed, mu = mu_skewed, sigma2 = sigma2_skewed)
+h_MISE_200 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 200, w = w_skewed, mu = mu_skewed, sigma2 = sigma2_skewed)
+
+# AMISE n = 500
+
+AMISE_500 <- AMISE(n = 500, h = h, R_K = R_K_N01, R_f2 = R_f2_skewed)
+h_AMISE_500 <- h_AMISE_n(n = 500, R_K = R_K_N01, R_f2 = R_f2_skewed)
+
+# MISE = 500
+
+MISE_500 <- MISE(h, n = 500, w = w_skewed, mu = mu_skewed, sigma2 = sigma2_skewed)
+h_MISE_500 <- optimize(MISE, c(0, 1), tol = 0.0001, n = 500, w = w_skewed, mu = mu_skewed, sigma2 = sigma2_skewed)
+```
+
+```{r q2plot2, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "Histograms from sample obtained from n = 100, 200 and 500 for object MW.nm2 (Skewed) \\label{fig:q2plot2}"}
+# Simulating
+# Histogram plots
+par(mfrow = c(1,3))
+hist(x100, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm2 n = 100")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm2), col = 2)
+hist(x200, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm2 n = 200")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm2), col = 2)
+hist(x500, freq = FALSE, xlim = c(-4,4), main = "Histogram MW.nm2 n = 500")
+lines(x, nor1mix::dnorMix(x = x, obj = nor1mix::MW.nm2), col = 2)
+```
+
+```{r q2plot3, echo=FALSE, fig.width =12, fig.height = 5, fig.cap = "MISE and AMISE for range bandwith between 0.04 and 0.85\\label{fig:q2plot3}"}
+par(mfrow = c(1,3))
+plot(h, MISE_100, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 100, nor1mix::MW.nm2",
+     ylab = "MISE(h)")
+lines(h, AMISE_100, col = "blue")
+abline(v = h_AMISE_100, col = "blue")
+abline(v = h_MISE_100)
+text(0.4, 0.06, labels = paste("h_MISE = ", round(h_MISE_100$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.18, 0.06, labels = paste("h_AMISE = ", round(h_AMISE_100,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
+plot(h, MISE_200, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 200, nor1mix::MW.nm2",
+     ylab = "MISE(h)")
+lines(h, AMISE_200, col = "blue")
+abline(v = h_AMISE_200, col = "blue")
+abline(v = h_MISE_200)
+text(0.4, 0.03, labels = paste("h_MISE = ", round(h_MISE_200$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.15, 0.03, labels = paste("h_AMISE = ", round(h_AMISE_200,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
+plot(h, MISE_500, type = "l", 
+     main = "Comparison MISE(h) and AMISE(h) \n n = 500, nor1mix::MW.nm2",
+     ylab = "MISE(h)")
+lines(h, AMISE_500, col = "blue")
+abline(v = h_AMISE_500, col = "blue")
+abline(v = h_MISE_500)
+text(0.1, 0.02, labels = paste("h_MISE = ", round(h_MISE_500$minimum,3) ), col = "black", cex = 0.6, font = 2, adj = c(0, 0))
+text(0.3, 0.02, labels = paste("h_AMISE = ", round(h_AMISE_500,3) ), col = "blue", cex = 0.6, font = 2, adj = c(0, 0))
+legend("topright", legend = c("MISE", "AMISE"), lwd = 1, col = c("black", "blue"))
+
+```
+
+
+
+\newpage
+
 ## Question 3
+
+Adapt the `np_pred_CI` function to include the argument `type_boot`, which can take either the value `"naive"` or `"wild"`. 
+
+1) If `type_boot = "wild"`, then the function must perform the wild bootstrap algorithm, implemented from scratch following substeps i–iv. 
+
+2) Compare and validate the correct behavior of the confidence intervals, for the two specifications of type_boot, in the model considered in Exercise 5.8 (without performing the full simulation study).
+
+For this question we describe briefly the necessary steps related to the implementation of the wild-bootstrap:
+
+First of all, for a given sample with $n$ observations, the  predicted (fitted) values are given by the expression: $\hat{Y}_{i} := \hat{m}(X_{i};q,h)$ with $i = 1,...,n$.
+
+Then, the uncertainty of $\hat{m}(x,q,h)$ (this includes the consideration of new set of samples) can be measure based on two approaches:
+
+1. Asymptotic approach: $\hat{m}(x;q,h) \pm \hat{se}(\hat{m}(x;q,h))$ where $\hat{se}(\hat{m}(x;q,h))$ is the asymptotic estimation of the standard deviation of $\hat{m}(x;q,h)$
+
+2. Bootstrap: In this case, we consider two types of bootstrap:
+
+  - Naive Bootstrap: From the original sample, we create a new set of IID observations called the *Bootstrap sample*
+  
+  - Wild Bootstrap: This technique is focused on resampling the residuals. Similar to the *residual bootstrap* in which we fixed the covariate $X_{i}$ and generate a new value of $Y_{i}$ using the fitted model and the *noise* from sampling the residuals, additional we generate IID random variables $V_{i}$ (random variable with mean zero and variance 1) and then we can perturb the residuals. This modification improves the stability of the computations, especially in the presence of heteroskedasticity.
+  
+The algorithm of the computation of the wild boostrap is given in the following steps:
+
+1. Compute $\hat{m}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x)Y_{i}$ from the original sample $(X_{1}, Y_{1}),...,(X_{n}, Y_{n})$
+  
+2. Enter the wild bootstrap. For $b = 1,...,B$.
+  
+  i. Simulate $V_{1}^{*b},...,V_{n}^{*b}$ to be iid copies of $V$ such that $E[V] = 0$ and $Var[V] = 1$,
+  
+  ii. Compute the *pertubed residuals* $e_{i}^{*b} = \hat{e}_{i}V_{i}^{*b}$ where $Y_{i}^{*b} := \hat{m}(X_{i};q,h) + e_{i}^{*b}$ for $i = 1,...,n$.
+  
+  iii. Obtain the bootstrap sample: $(X_{1}, Y_{1}^{*b}),...,(X_{n}, Y_{n}^{*b})$ where $Y_{i}^{*b} := \hat{m}(X_{i};q,h) + e_{i}^{*b}$ with $i = 1,...,n$.
+  
+  iv. Compute $\hat{m}^{*b}(x;q,h) = \sum_{i=1}^{n} W_{i}^{q}(x) Y_{i}^{*b}$ from $(X_{1}^{*}, Y_{1}^{*b}),...,(X_{n}^{8}, Y_{n}^{*b})$
+
+
+As a result, we modified the function `np_pred_CI`. The inputs of the original function are the following:
+
+1. `npfit`: A np::npreg object (npfit) 
+
+2. `exdat`: Values of the predictors were to carry out prediction (exdat)
+
+3. `B`:     Number of bootstrap iterations.
+
+4.`conf`:  Range of confidence interval
+
+5. `type_CI`: Type of confidence interval. (Normal standard or quantiles)
+
+Additionally, we add three new inputs:
+
+6. `type_boot`: Type of bootstrap procedure. Options: `Naive` and `Wild` bootstrap
+
+7. `perturbed_res`: For the case of `Wild` Bootstrap, we can choose the type of perturbation. As explained before, any random variable with mean $0$ and variance $1$ can be used. As a result, we use two possible perturbation: 
+
+  7.1. `normal`: Based on the normal distribution $V_{i} \sim \mathcal{N}(0,1)$  
+
+  7.2 `golden`: Based on the *golden section binary variable* $P[V = 1 - \phi] = p$, $P[V = \phi] = 1 - p$ and $p = \frac{\phi + 2}{5}$
+
+8. `seed`: Used for reproducibility. Default option is `seed = 42`.
+
+The code of the new version of `np_pred_CI` is given below. We create a new `if` condition, in order to compute the type of bootstrap resampling method chosen by the user. In the case of the `wild` bootstrap, we focus on resampling the residuals obtained from the difference of the fitted value $\hat{Y}_{i}$ and the *real* values $Y_{i}$. Moreover, inside the option `type_boot == wild`, there is an `if` condition with the two possible alternatives for computing the perturbed residuals.
+
+```{r}
+# Function to predict and compute confidence intervals for m(x). 
+
+# 1) Inputs
+
+## 1.1) npfit: A np::npreg object (npfit) 
+## 1.2) exdat: Values of the predictors where to carry out prediction (exdat)
+## 1.3) B:     Number of bootstrap iterations.
+## 1.4) conf:  Range of confidence interval
+## 1.5) type_CI: Type of confidence interval. (Based on normal standard or quantiles)
+## 1.6) type_boot: Type of bootstrap procedure. Options Naive and Wild bootstrap
+## 1.7) perturbed_res: Valid only for Wild Bootstrap. Type of perturbation on the residuals. 
+## Options are "normal"or "golden"
+## 1.8) seed: Used for reproducibility. Default option is seed = 42.
+
+# 2) Outputs
+
+## 2.1) exdat: Values of the predictors where to carry out prediction
+## 2.2) m_hat: Predicted regression
+## 2.3) lwr:   Lower confidence interval
+## 2.4) upr:   Upper confidence interval
+
+np_pred_CI <- function(npfit, 
+                       exdat, 
+                       B = 200, 
+                       conf = 0.95,
+                       type_CI = c("standard", "quantiles")[1],
+                       type_boot = c("naive", "wild")[1],
+                       perturbed_res = c("normal", "golden")[1],
+                       seed = 42) {
+  
+  # Fix seed
+  set.seed(seed)
+  
+  # Extract predictors
+  xdat <- npfit$eval
+  
+  # Extract response, using a trick from np::npplot.rbandwidth
+  tt <- terms(npfit$bws)
+  tmf <- npfit$bws$call[c(1, match(c("formula", "data"),
+                                   names(npfit$bws$call)))]
+  tmf[[1]] <- as.name("model.frame")
+  tmf[["formula"]] <- tt
+  tmf <- eval(tmf, envir = environment(tt))
+  ydat <- model.response(tmf)
+
+  # Predictions m_hat from the original sample
+  m_hat <- np::npreg(txdat = xdat, 
+                     tydat = ydat, 
+                     exdat = exdat,
+                     bws   = npfit$bws)$mean
+  
+  if (type_boot == "naive") {
+    
+    # Function for performing naive bootstrap
+    boot_function_naive <- function(data, indices) {
+      np::npreg(txdat = xdat[indices,], 
+                tydat = ydat[indices],
+                exdat = exdat, 
+                bws   = npfit$bws)$mean
+    }
+    
+    # Carry out the bootstrap estimator
+    m_hat_star <- boot::boot(data = data.frame(xdat), 
+                             statistic = boot_function_naive,
+                             R = B)$t
+    
+  } else if (type_boot == "wild") {
+    
+    # Sample size of the predictors
+    n <- length(xdat)
+    
+    # Y fitted
+    Y_hat <- npfit$mean
+    
+    # Ordinary residuals
+    residuals_O <- Y_hat - ydat
+    
+    # Type of perturbation
+    if(perturbed_res == "normal"){
+      
+      # Function for performing wild bootstrap
+      boot_function_wild <- function(data, indices) {
+        
+        # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
+        V_n <- rnorm(n)
+        
+        # Step iii. Obtain the bootstrap sample
+        ydat_bt <- Y_hat + data[indices]*V_n
+        
+        np::npreg(txdat = xdat, 
+                  tydat = ydat_bt,
+                  exdat = exdat, 
+                  bws = npfit$bws)$mean
+      }
+      
+      # Step iv. Carry out the wild bootstrap estimator
+      m_hat_star <- boot::boot(data = residuals_O, 
+                               statistic = boot_function_wild,
+                               R = B)$t
+      
+    } else if(perturbed_res == "golden"){
+      
+      # Function for performing wild bootstrap
+      boot_function_wild <- function(data, indices) {
+        
+        # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
+        phi <- (1 + sqrt(5))/2
+        prob <- (phi + 2)/5
+        
+        golden <- sample(x = c(1-phi,phi), size = n, prob = c(prob, 1 - prob), replace=T)
+        
+        # Step iii. Obtain the bootstrap sample
+        ydat_bt <- Y_hat + data[indices]*golden
+        
+        np::npreg(txdat = xdat, 
+                  tydat = ydat_bt,
+                  exdat = exdat, 
+                  bws = npfit$bws)$mean
+      }
+      
+      # Step iv. Carry out the wild bootstrap estimator
+      m_hat_star <- boot::boot(data = residuals_O, 
+                               statistic = boot_function_wild,
+                               R = B)$t
+      
+    }
+    
+    else{stop("Incorrect type of peturbation")}
+    
+  }else{stop("Incorrect type_boot")}
+  
+  # Confidence intervals
+  alpha <- 1 - conf
+  
+  if (type_CI == "standard") {
+    
+    z <- qnorm(p = 1 - alpha / 2)
+    se <- apply(m_hat_star, 2, sd)
+    lwr <- m_hat - z * se
+    upr <- m_hat + z * se
+    
+  } else if (type_CI == "quantiles") {
+    
+    q <- apply(m_hat_star, 2, quantile, probs = c(alpha / 2, 1 - alpha / 2))
+    lwr <- q[1, ]
+    upr <- q[2, ]
+    
+  } else {
+    stop("Incorrect type_CI")
+  }
+  # Return evaluation points, estimates, and confidence intervals
+  return(data.frame("exdat" = exdat, "m_hat" = m_hat, "lwr" = lwr, "upr" = upr))
+}
+```
+
+```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+# Charge to the environment.Do not show results and code
+
+#source("R_Code/np_pred_CI.R")
+set.seed(12345)
+B <- 500
+n <- 100
+eps <- rnorm(n, sd = 0.75)
+m <- function(x) 0.25*x^2 - 0.75*x + 3
+X <- rnorm(n, sd = 1.5)
+Y <- m(X) + eps
+
+# The spinner can be omitted with
+options(np.messages = FALSE)
+bw1 <- np::npregbw(formula = Y ~ X, regtype = "lc")
+fit1 <- np::npreg(bw1)
+```
+
+Finally, we compare and validate the correct behavior of the confidence intervals, for the two specifications of `type_boot` and the two types of perturbations. For this purpose, we simulate the following sample of size $n = 100$ from the regression model $Y = m(x) + \epsilon$ where $m(x) = 0.25x^{2} - 0.75x + 3$, with $X \sim \mathcal{N}(0, 1.5^{2})$ and $\epsilon \sim \mathcal(0, 0.75^{2})$. Figure \ref{fig:q3plot00} shows the simulated sample. In this case the simulated observations are concentrated in the left side of the plot.
+
+```{r q3plot00, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Simulation of 100 observations for m(X). Seed = 12345 \\label{fig:q3plot00}"}
+plot(X,Y, main = "Simulate observations m(x)", xlim = c(-5,5))
+
+```
+
+Then, we fit a model using the function `npregbw()` with `regtype = "lc"` and the final model is created with the function `npreg()`. For reference, figures \ref{fig:q3plot0a} and \ref{fig:q3plot0b} shows the confidence interval under normal approximation and quantile compute by `np::npplot`. In particular, we focus on the right side of the confidence intervals. In the case of quantile confidence interval (figure \ref{fig:q3plot0b}) the upper confidence bound is relatively close to the fitted regression $\hat{m}(X_{i};q,h)$
+
+```{r q3plot0a, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Bootstrap intervals: Default option npplot\\label{fig:q3plot0a}"}
+par(mfrow = c(1,2))
+# Normal approximation confidence intervals + extraction of errors
+npplot_std <- plot(fit1, 
+                   plot.errors.method = "bootstrap",
+                   plot.errors.type = "standard", 
+                   plot.errors.boot.num = B,
+                   plot.errors.style = "bar", 
+                   plot.behavior = "plot-data",
+                   lwd = 2,
+                   main = "Bootstrap (npplot) \n Normal Approximation Confidence Intervals")
+lines(npplot_std$r1$eval[, 1], npplot_std$r1$mean + npplot_std$r1$merr[, 1],
+      col = 2, lty = 2)
+lines(npplot_std$r1$eval[, 1], npplot_std$r1$mean + npplot_std$r1$merr[, 2],
+      col = 2, lty = 2)
+```
+
+```{r q3plot0b, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Bootstrap intervals: Default option npplot\\label{fig:q3plot0b}"}
+# Quantile confidence intervals + extraction of errors
+npplot_qua <- plot(fit1, 
+                   plot.errors.method = "bootstrap",
+                   plot.errors.type = "quantiles", 
+                   plot.errors.boot.num = B,
+                   plot.errors.style = "bar", 
+                   plot.behavior = "plot-data",
+                   main = "Bootstrap (npplot) \n Quantile Confidence Intervals")
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lty = 2)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lty = 2)
+
+```
+
+\newpage
+
+Then, we compute $95\%$ confidence intervals for $m(x)$ along `x <- seq(-5, 5, by = 0.1)`. Figure \ref{fig:q3plot1} shows the case of the naive bootstrap. In this case, we see how the confidence intervals of the default quantile option of `np::npplot` coincide perfectly with the confidence interval given by `np_pred_CI` with the option `type_bot = naive`. Additionally, the light blue and green lines represents the extension of the predicted values for $m(x)$ in the grid between $-5$ and $5$.
+
+```{r q3plot1, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Function np_pred_CI: Naive Bootstrap\\label{fig:q3plot1}"}
+ci1 <- np_pred_CI(npfit = fit1, 
+                  exdat = seq(-5, 5, by = 0.1),
+                  B = B, 
+                  type_CI = "quantiles",
+                  type_boot = "naive")
+# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+plot(fit1, 
+     plot.errors.method = "bootstrap", 
+     plot.errors.type = "quantiles",
+     plot.errors.boot.num = B, 
+     plot.errors.style = "bar", 
+     lwd = 3,  
+     main = "Confidence Intervals quantile \n Naive Bootstrap",
+     xlim = c(-5,5))
+points(X,Y)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lwd = 3)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lwd = 3)
+lines(ci1$exdat, ci1$m_hat, col = 3)
+lines(ci1$exdat, ci1$lwr, col = 4)
+lines(ci1$exdat, ci1$upr, col = 4)
+```
+
+Finally, figures \ref{fig:q3plot2} and \ref{fig:q3plot3} shows the confidence intervals in case of wild bootstrap with normal and golden section perturbation. In this case, we notice how the confidence interval is in the function of the number of simulated observations. In the case of the tails, especially on the right side, the confidence intervals are wider in relation to the confidence intervals given by the `naive` bootstrap. On the other hand, in the sections of the graph where there is a concentration of simulated observations, the fitted lower and upper confidence intervals are similar for the two bootstrap methodologies.
+
+```{r q3plot2, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Function np_pred_CI: Wild Bootstrap and normal perturbation\\label{fig:q3plot2}"}
+## Wild bootstrap (Normal perturbation)
+ci1 <- np_pred_CI(npfit = fit1, 
+                  exdat = seq(-5, 5, by = 0.1),
+                  B = B, 
+                  type_CI = "quantiles",
+                  type_boot = "wild")
+# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+plot(fit1, 
+     plot.errors.method = "bootstrap", 
+     plot.errors.type = "quantiles",
+     plot.errors.boot.num = B, 
+     plot.errors.style = "bar", 
+     lwd = 3,
+     main = "Confidence Intervals quantile \n Wild Bootstrap - Normal perturbation",
+     xlim = c(-5,5) )
+points(X,Y)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lwd = 3)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lwd = 3)
+lines(ci1$exdat, ci1$m_hat, col = 3)
+lines(ci1$exdat, ci1$lwr, col = 4)
+lines(ci1$exdat, ci1$upr, col = 4)
+```
+
+```{r q3plot3, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Function np_pred_CI: Wild Bootstrap and golden error perturbation\\label{fig:q3plot3}"}
+## Wild bootstrap (Golden ratio perturbation)
+ci1 <- np_pred_CI(npfit = fit1, 
+                  exdat = seq(-5, 5, by = 0.1),
+                  B = B, 
+                  type_CI = "quantiles",
+                  type_boot = "wild",
+                  perturbed_res = "golden")
+# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+plot(fit1, 
+     plot.errors.method = "bootstrap", 
+     plot.errors.type = "quantiles",
+     plot.errors.boot.num = B, 
+     plot.errors.style = "bar", 
+     lwd = 3,
+     main = "Confidence Intervals quantile \n Wild Bootstrap - Golden ratio perturbation",
+     xlim = c(-5,5) )
+points(X,Y)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
+      col = 2, lwd = 3)
+lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
+      col = 2, lwd = 3)
+lines(ci1$exdat, ci1$m_hat, col = 3)
+lines(ci1$exdat, ci1$lwr, col = 4)
+lines(ci1$exdat, ci1$upr, col = 4)
+
+```
