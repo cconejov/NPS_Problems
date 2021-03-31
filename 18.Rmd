@@ -242,7 +242,7 @@ Adapt the `np_pred_CI` function to include the argument `type_boot`, which can t
 
 2) Compare and validate the correct behavior of the confidence intervals, for the two specifications of type_boot, in the model considered in Exercise 5.8 (without performing the full simulation study).
 
-For this question we describe briefly the necessary steps related with the implementation of the wild-bootstrap:
+For this question we describe briefly the necessary steps related to the implementation of the wild-bootstrap:
 
 First of all, for a given sample with $n$ observations, the  predicted (fitted) values are given by the expression: $\hat{Y}_{i} := \hat{m}(X_{i};q,h)$ with $i = 1,...,n$.
 
@@ -254,7 +254,7 @@ Then, the uncertainty of $\hat{m}(x,q,h)$ (this includes the consideration of ne
 
   - Naive Bootstrap: From the original sample, we create a new set of IID observations called the *Bootstrap sample*
   
-  - Wild Bootstrap: This technique is focused on resampling the residuals. Similar to the *residual bootstrap* in which we fixed the covariate $X_{i}$ and generate a new value of $Y_{i}$ using the fitted model and the *noise* from sampling the residuals, additional we generate IID random variables $V_{i}$ (random variable with mean zero and variance 1) and then we can perturbed the residuals. This modification improve the stability of the computations, specially in the presence of heteroskedasticity.
+  - Wild Bootstrap: This technique is focused on resampling the residuals. Similar to the *residual bootstrap* in which we fixed the covariate $X_{i}$ and generate a new value of $Y_{i}$ using the fitted model and the *noise* from sampling the residuals, additional we generate IID random variables $V_{i}$ (random variable with mean zero and variance 1) and then we can perturb the residuals. This modification improves the stability of the computations, especially in the presence of heteroskedasticity.
   
 The algorithm of the computation of the wild boostrap is given in the following steps:
 
@@ -275,7 +275,7 @@ As a result, we modified the function `np_pred_CI`. The inputs of the original f
 
 1. `npfit`: A np::npreg object (npfit) 
 
-2. `exdat`: Values of the predictors where to carry out prediction (exdat)
+2. `exdat`: Values of the predictors were to carry out prediction (exdat)
 
 3. `B`:     Number of bootstrap iterations.
 
@@ -287,15 +287,15 @@ Additionally, we add three new inputs:
 
 6. `type_boot`: Type of bootstrap procedure. Options: `Naive` and `Wild` bootstrap
 
-7. `perturbed_res`: For the case of `Wild` Bootstrap, we can choose the type of peturbation. As explained before, any random variable with mean $0$ and variance $1$ can be used. As a result, we use two possible perturbation: 
+7. `perturbed_res`: For the case of `Wild` Bootstrap, we can choose the type of perturbation. As explained before, any random variable with mean $0$ and variance $1$ can be used. As a result, we use two possible perturbation: 
 
-7.1. `normal`: Based on the normal distribution $V_{i} \sim \mathcal{N}(0,1)$  
+  7.1. `normal`: Based on the normal distribution $V_{i} \sim \mathcal{N}(0,1)$  
 
-7.2 `golden`: Based on the *golden section binary variable* $P[V = 1 - \phi] = p$, $P[V = \phi] = 1 - p$ and $p = \frac{\phi + 2}{5}$
+  7.2 `golden`: Based on the *golden section binary variable* $P[V = 1 - \phi] = p$, $P[V = \phi] = 1 - p$ and $p = \frac{\phi + 2}{5}$
 
-8. `seed`: Used for reproducibility. Default option is `seed = 42`
+8. `seed`: Used for reproducibility. Default option is `seed = 42`.
 
-The code of the new version of `np_pred_CI`. We basically create a new `if` condition in order to compute the type of bootstrap resample choose by the user. In the case of the `wild` boostrap, we focus on resampling the residuals of the fitted value $\hat{Y}_{i}$ and the *real* values $Y_{i}$:
+The code of the new version of `np_pred_CI` is given below. We create a new `if` condition, in order to compute the type of bootstrap resampling method chosen by the user. In the case of the `wild` bootstrap, we focus on resampling the residuals obtained from the difference of the fitted value $\hat{Y}_{i}$ and the *real* values $Y_{i}$. Moreover, inside the option `type_boot == wild`, there is an `if` condition with the two possible alternatives for computing the perturbed residuals.
 
 ```{r eval=FALSE, echo=TRUE}
 # Function to predict and compute confidence intervals for m(x). 
@@ -308,8 +308,9 @@ The code of the new version of `np_pred_CI`. We basically create a new `if` cond
 ## 1.4) conf:  Range of confidence interval
 ## 1.5) type_CI: Type of confidence interval. (Based on normal standard or quantiles)
 ## 1.6) type_boot: Type of bootstrap procedure. Options Naive and Wild bootstrap
-## 1.7) perturbed_res: Valid only for Wild Bootstrap. Type of perturbation on the residuals. Options are "normal"or "golden"
-## 1.8) seed:
+## 1.7) perturbed_res: Valid only for Wild Bootstrap. Type of perturbation on the residuals. 
+## Options are "normal"or "golden"
+## 1.8) seed: Used for reproducibility. Default option is seed = 42.
 
 # 2) Outputs
 
@@ -341,9 +342,7 @@ np_pred_CI <- function(npfit,
   tmf[["formula"]] <- tt
   tmf <- eval(tmf, envir = environment(tt))
   ydat <- model.response(tmf)
-```
-  
-```{r eval=FALSE, echo=TRUE} 
+
   # Predictions m_hat from the original sample
   m_hat <- np::npreg(txdat = xdat, 
                      tydat = ydat, 
@@ -399,7 +398,6 @@ np_pred_CI <- function(npfit,
                                statistic = boot_function_wild,
                                R = B)$t
       
-      
     } else if(perturbed_res == "golden"){
       
       # Function for performing wild bootstrap
@@ -407,8 +405,7 @@ np_pred_CI <- function(npfit,
         
         # Step i: Simulate V_{i} copies of V (Mean 0 and variance 1)
         phi <- (1 + sqrt(5))/2
-        prob <- (phi + 2)/5  
-        
+        prob <- (phi + 2)/5
         
         golden <- sample(x = c(1-phi,phi), size = n, prob = c(prob, 1 - prob), replace=T)
         
@@ -456,13 +453,6 @@ np_pred_CI <- function(npfit,
 }
 ```
 
-Finally, we compare and validate the correct behavior of the confidence intervals, for the two specifications of `type_boot` and the two types of perturbations. For this purpose, we simulate the following sample of size $n = 100$ from the regression model $Y = m(x) + \epsilon$ where $m(x) = 0.25x^{2} - 0.75x + 3$, with $X \sim \mathcal{N}(0, 1.5^{2})$ and $\epsilon \sim \mathcal(0, 0.75^{2})$.
-
-We compute $95\%$ confidence intervals for $m(x)$ along `x <- seq(-5, 5, by = 0.1)`.
-
-
-
-
 ```{r eval=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
 # Charge to the environment.Do not show results and code
 
@@ -481,9 +471,16 @@ bw1 <- np::npregbw(formula = Y ~ X, regtype = "lc")
 fit1 <- np::npreg(bw1)
 ```
 
+Finally, we compare and validate the correct behavior of the confidence intervals, for the two specifications of `type_boot` and the two types of perturbations. For this purpose, we simulate the following sample of size $n = 100$ from the regression model $Y = m(x) + \epsilon$ where $m(x) = 0.25x^{2} - 0.75x + 3$, with $X \sim \mathcal{N}(0, 1.5^{2})$ and $\epsilon \sim \mathcal(0, 0.75^{2})$. Figure \ref{fig:q3plot00} shows the simulated sample. In this case the simulated observations are concentrated in the left side of the plot.
 
+```{r q3plot00, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Simulation of 100 observations for m(X). Seed = 12345 \\label{fig:q3plot00}"}
+plot(X,Y, main = "Simulate observations m(x)", xlim = c(-5,5))
 
-```{r q3plot0, echo=FALSE, fig.width = 12, fig.height = 5, fig.cap = "Bootstrap intervals: Default option npplot\\label{fig:q3plot0}"}
+```
+
+Then, we fit a model using the function `npregbw()` with `regtype = "lc"` and the final model is created with the function `npreg()`. For reference, figures \ref{fig:q3plot0a} and \ref{fig:q3plot0b} shows the confidence interval under normal approximation and quantile compute by `np::npplot`. In particular, we focus on the right side of the confidence intervals. In the case of quantile confidence interval (figure \ref{fig:q3plot0b}) the upper confidence bound is relatively close to the fitted regression $\hat{m}(X_{i};q,h)$
+
+```{r q3plot0a, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Bootstrap intervals: Default option npplot\\label{fig:q3plot0a}"}
 par(mfrow = c(1,2))
 # Normal approximation confidence intervals + extraction of errors
 npplot_std <- plot(fit1, 
@@ -498,6 +495,9 @@ lines(npplot_std$r1$eval[, 1], npplot_std$r1$mean + npplot_std$r1$merr[, 1],
       col = 2, lty = 2)
 lines(npplot_std$r1$eval[, 1], npplot_std$r1$mean + npplot_std$r1$merr[, 2],
       col = 2, lty = 2)
+```
+
+```{r q3plot0b, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Bootstrap intervals: Default option npplot\\label{fig:q3plot0b}"}
 # Quantile confidence intervals + extraction of errors
 npplot_qua <- plot(fit1, 
                    plot.errors.method = "bootstrap",
@@ -513,6 +513,9 @@ lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
 
 ```
 
+\newpage
+
+Then, we compute $95\%$ confidence intervals for $m(x)$ along `x <- seq(-5, 5, by = 0.1)`. Figure \ref{fig:q3plot1} shows the case of the naive bootstrap. In this case, we see how the confidence intervals of the default quantile option of `np::npplot` coincide perfectly with the confidence interval given by `np_pred_CI` with the option `type_bot = naive`. Additionally, the light blue and green lines represents the extension of the predicted values for $m(x)$ in the grid between $-5$ and $5$.
 
 ```{r q3plot1, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Function np_pred_CI: Naive Bootstrap\\label{fig:q3plot1}"}
 ci1 <- np_pred_CI(npfit = fit1, 
@@ -539,7 +542,8 @@ lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
 ```
 
-   
+Finally, figures \ref{fig:q3plot2} and \ref{fig:q3plot3} shows the confidence intervals in case of wild bootstrap with normal and golden section perturbation. In this case, we notice how the confidence interval is in the function of the number of simulated observations. In the case of the tails, especially on the right side, the confidence intervals are wider in relation to the confidence intervals given by the `naive` bootstrap. On the other hand, in the sections of the graph where there is a concentration of simulated observations, the fitted lower and upper confidence intervals are similar for the two bootstrap methodologies.
+
 ```{r q3plot2, echo=FALSE, fig.width = 10, fig.height = 5, fig.cap = "Function np_pred_CI: Wild Bootstrap and normal perturbation\\label{fig:q3plot2}"}
 ## Wild bootstrap (Normal perturbation)
 ci1 <- np_pred_CI(npfit = fit1, 
