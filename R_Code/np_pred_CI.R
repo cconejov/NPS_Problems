@@ -8,15 +8,15 @@
 ## 1.4) conf:  Range of confidence interval
 ## 1.5) type_CI: Type of confidence interval. (Based on normal standard or quantiles)
 ## 1.6) type_boot: Type of bootstrap procedure. Options Naive and Wild bootstrap
-## 1.7) perturbed_res: Valid only for Wild Bootstrap. Type of perturbation on the residuals
+## 1.7) perturbed_res: Valid only for Wild Bootstrap. Type of perturbation on the residuals. Options are "normal"or "golden"
 ## 1.8) seed:
 
 # 2) Outputs
 
-## 2.1) exdat:
-## 2.2) m_hat: 
-## 2.3) lwr:
-## 2.4) upr:
+## 2.1) exdat: Values of the predictors where to carry out prediction
+## 2.2) m_hat: Predicted regression
+## 2.3) lwr:   Lower confidence interval
+## 2.4) upr:   Upper confidence interval
 
 np_pred_CI <- function(npfit, 
                        exdat, 
@@ -42,13 +42,11 @@ np_pred_CI <- function(npfit,
   tmf <- eval(tmf, envir = environment(tt))
   ydat <- model.response(tmf)
   
-  
   # Predictions m_hat from the original sample
   m_hat <- np::npreg(txdat = xdat, 
                      tydat = ydat, 
                      exdat = exdat,
                      bws   = npfit$bws)$mean
-  
   
   if (type_boot == "naive") {
     
@@ -128,10 +126,9 @@ np_pred_CI <- function(npfit,
       
     }
     
-    else{   stop("Incorrect type of peturbation")}
-  }else{   stop("Incorrect type_boot")}
-  
-  
+    else{stop("Incorrect type of peturbation")}
+    
+  }else{stop("Incorrect type_boot")}
   
   # Confidence intervals
   alpha <- 1 - conf

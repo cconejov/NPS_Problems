@@ -17,6 +17,9 @@ m <- function(x) 0.25*x^2 - 0.75*x + 3
 X <- rnorm(n, sd = 1.5)
 Y <- m(X) + eps
 
+
+plot(X,Y, main = "Simulated observations")
+
 bw1 <- np::npregbw(formula = Y ~ X, regtype = "lc")
 fit1 <- np::npreg(bw1)
 summary(fit1)
@@ -24,12 +27,15 @@ summary(fit1)
 #Asymptotic standard errors
 fit1$merr
 
-
 # Normal approximation confidence intervals + extraction of errors
-npplot_std <- plot(fit1, plot.errors.method = "bootstrap",
-                   plot.errors.type = "standard", plot.errors.boot.num = B,
-                   plot.errors.style = "bar", plot.behavior = "plot-data",
-                   lwd = 2)
+npplot_std <- plot(fit1, 
+                   plot.errors.method = "bootstrap",
+                   plot.errors.type = "standard", 
+                   plot.errors.boot.num = B,
+                   plot.errors.style = "bar", 
+                   plot.behavior = "plot-data",
+                   lwd = 2,
+                   main = "Bootstrap (npplot) \n Normal Approximation Confidence Intervals")
 lines(npplot_std$r1$eval[, 1], npplot_std$r1$mean + npplot_std$r1$merr[, 1],
       col = 2, lty = 2)
 lines(npplot_std$r1$eval[, 1], npplot_std$r1$mean + npplot_std$r1$merr[, 2],
@@ -39,9 +45,13 @@ head(npplot_std$r1$merr)
 
 
 # Quantile confidence intervals + extraction of errors
-npplot_qua <- plot(fit1, plot.errors.method = "bootstrap",
-                   plot.errors.type = "quantiles", plot.errors.boot.num = B,
-                   plot.errors.style = "bar", plot.behavior = "plot-data")
+npplot_qua <- plot(fit1, 
+                   plot.errors.method = "bootstrap",
+                   plot.errors.type = "quantiles", 
+                   plot.errors.boot.num = B,
+                   plot.errors.style = "bar", 
+                   plot.behavior = "plot-data",
+                   main = "Bootstrap (npplot) \n Quantile Confidence Intervals")
 lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 1],
       col = 2, lty = 2)
 lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
@@ -82,7 +92,11 @@ lines(npplot_qua$r1$eval[, 1], npplot_qua$r1$mean + npplot_qua$r1$merr[, 2],
 lines(ci1$exdat, ci1$m_hat, col = 3)
 lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
+points(X,Y)
 
+Y
+   
+ci1$lwr
 
 
 ## Wild bootstrap (Normal perturbation)
@@ -93,7 +107,7 @@ ci1 <- np_pred_CI(npfit = fit1,
                   B = B, 
                   type_CI = "quantiles",
                   type_boot = "wild")
-# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+# Reconstruction of np::npplot’s figure -- the curves does not coincide perfectly: Broad intervals
 plot(fit1, 
      plot.errors.method = "bootstrap", 
      plot.errors.type = "quantiles",
@@ -111,15 +125,13 @@ lines(ci1$exdat, ci1$lwr, col = 4)
 lines(ci1$exdat, ci1$upr, col = 4)
 
 ## Wild bootstrap (Golden ratio perturbation)
-
-
 ci1 <- np_pred_CI(npfit = fit1, 
                   exdat = seq(-5, 5, by = 0.1),
                   B = B, 
                   type_CI = "quantiles",
                   type_boot = "wild",
                   perturbed_res = "golden")
-# Reconstruction of np::npplot’s figure -- the curves coincide perfectly
+# Reconstruction of np::npplot’s figure -- the curves does not coincide perfectly: Broad intervals
 plot(fit1, 
      plot.errors.method = "bootstrap", 
      plot.errors.type = "quantiles",
