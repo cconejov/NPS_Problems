@@ -9,11 +9,471 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(warning = FALSE)
 knitr::opts_chunk$set(message = FALSE)
-knitr::opts_chunk$set(fig.width=5, fig.height=5)
 ```
 
 # Question 1
 
+### Problem Description
+
+Assess S claims of battery failure from temperatures from a sample of previous batteries that experienced failure and from a sample of past battery temperatures in general. 
+
+a. Perform a kernel density estimation for temps-7 and temps-other using what you consider is the most adequate bandwidth. Since the temperatures are positive, is it required to perform any transformation?.
+
+b. Is there any important difference on the results from considering the LSCV selector over the DPI selector?
+
+c. It seems that in temps-7 there is a secondary mode. Compute a kernel derivative estimation for temps-7 and temps-other using what you consider are the most adequate bandwidths.
+
+d. Precisely determine the location of the extreme points
+
+e. Check with a kernel second derivative that the extreme points are actually modes.
+
+## Preliminary Work
+
+```{r, echo=FALSE}
+problemPhones <- read.table("temps-7.txt", header = TRUE)$x
+pastPhones    <- read.table("temps-other.txt", header = TRUE)$x
+```
+
+We see the summary of the "Problematic phone" series, phones that have burned due to excessive temperature, and then the "Past phone" series of the working temperature of general phones in the past. We notice that the problematic phones have a much higher maximum value but a similar median. This leads us to suspect that phones that do burn up, do more often, have higher temperatures that lead to their failure. 
+
+```{r, echo=FALSE}
+"Problematic phones"
+summary(problemPhones)
+"Past phones"
+summary(pastPhones)
+```
+
+We can see comparing the histograms in figure \ref{fig:q1hist} that, as we saw in the summaries, the problematic phones have much more disperse temperatures and a longer tail in the direction of higher temperatures. This indeed leads us to suspect that phones that do fail have a section of their series that have higher temperatures. However, phones that fail have temperatures that are normally, for most of the sample, in line with those of the general past phones. 
+
+```{r q1hist, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Comparison of histograms: Default bandwidths\\label{fig:q1hist}"}
+# Histograms - default bandwidths
+par(mfrow=c(1,2))
+p1 <- hist(problemPhones, xlim=c(0,65), probability = T, col=rgb(1,0,0,1/4), main = "Problematic phones")
+p2 <- hist(pastPhones, xlim=c(0,65), probability = T, col=rgb(0,0,1,1/4), main = "Past phones")
+```
+
+We see in our initial kernel densities with default bandwidths (Figure \ref{fig:q1density}) that there is a tail on the problematic series with a second mode for the high temperatures. There is also some distortion at the mode of the past battery curve, but the tail of high temperatures is not present.
+
+```{r q1density, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Comparison of densities; Default bandwidths\\label{fig:q1density}"}
+par(mfrow = c(1,2))
+plot(density(x = problemPhones), xlim = c(-5,65), main = 'Problematic battery')
+plot(density(x = pastPhones), xlim = c(-5,65), main = 'Past battery')
+```
+
+## Part a
+
+### Problem Description 
+
+Perform a kernel density estimation for temps-7 and temps-other using what you consider is the most adequate bandwidth.  Since the temperatures are positive, is it required to perform any transformation?.
+
+### Results 
+
+We can see these are the default bandwidths that are provided for the density estimates shown above. 
+
+```{r, echo=FALSE}
+"Problematic Temperatures"
+round(bw.nrd0(x = problemPhones),3)
+"Past Temperatures"
+round(bw.nrd0(x = pastPhones),3)
+```
+
+#### Transformations
+
+```{r, fig.show = 'hide', results='hide', echo=FALSE}
+## kde with log-transformed data
+kde_problemPhones <- density(log(problemPhones))
+plot(kde_problemPhones, main = "Problematic battery: transformed data")
+range(kde_problemPhones$x)
+
+# Untransform kde$x so the grid is in (0, infty)
+kde_transf_problemPhones <- kde_problemPhones
+kde_transf_problemPhones$x <- exp(kde_transf_problemPhones$x)
+# Transform the density using the chain rule
+kde_transf_problemPhones$y <- kde_transf_problemPhones$y * 1 / kde_transf_problemPhones$x
+```
+
+Transformations must be performed in order to avoid boundary bias, which is to assign probability, with the function mapping, when there is no real density to support it or can be bias towards zero. We are looking at temperatures that can take values close to zero or very high values, therefore this would make us consider a log transformation. Below in Figure \ref{fig:q1transdensityproblematic} and Figure \ref{fig:q1transdensitypast}, we do not see the shape of the curve change substantially - there are not sections that are mapped by the function but not supported by any density - nor do we see much boundary bias. However, the log transformation does further smooth our data - which for our analysis comparing the overall distribution of batteries - is helpful. This is due to the smaller bandwidth that is enabled due to the transformation, which also advantageous due to asymptotic properties. However, the untransformed series functions as well for our purposes, as a more precise curve is not necessarily important for our general type of analysis, and we don't see significant bias. Therefore, we proceed with the regular series.
+
+
+```{r q1transdensityproblematic, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Comparisono default and transformed densities for Problematic series\\label{fig:q1transdensityproblematic}"}
+par(mfrow = c(1,2))
+plot(density(x = problemPhones), xlim = c(-5,65), main = 'Problematic battery')
+# Transformed kde
+plot(kde_transf_problemPhones, main = "Problematic battery: Transformed", xlim = c(-5, 65))
+par(mfrow = c(1,1))
+```
+
+```{r, fig.show = 'hide', results='hide', echo=FALSE}
+## kde with log-transformed data
+kde_pastPhones <- density(log(pastPhones))
+plot(kde_pastPhones, main = "Kde of transformed data")
+range(kde_pastPhones$x)
+
+# Untransform kde$x so the grid is in (0, infty)
+kde_transf_pastPhones <- kde_pastPhones
+kde_transf_pastPhones$x <- exp(kde_transf_pastPhones$x)
+
+# Transform the density using the chain rule
+kde_transf_pastPhones$y <- kde_transf_pastPhones$y * 1 / kde_transf_pastPhones$x
+```
+
+```{r q1transdensitypast, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Comparison of default and transformed densities for Past series\\label{fig:q1transdensitypast}"}
+par(mfrow = c(1,2))
+plot(density(x = pastPhones), xlim = c(-5,60), main = 'Past battery')
+# Transformed kde
+plot(kde_transf_pastPhones, main = "Past battery: Transformed", xlim = c(-5, 60))
+par(mfrow = c(1,1))
+```
+
+\newpage
+
+#### Bandwidth Selection
+
+We will use several techniques to select the optimal bandwidth. The first technique is "rule of thumb" bandwidth selection derived from minimizing the AMISE with a normal parametric assumption for the unknown $R(f'')$, in zero stage part of the AMISE (asympotic mean integrated squared error) derivation: $h_{AMISE} = [\frac{R(K)}{\mu^2_2(K)R(f'')n}]^\frac{1}{5}$. We then look at the Direct Plug In (DPI) selector, which instead of using a normal parameterization in the zero stage, the DPI buries the parametric assumption, usually, with two stages which balances between bias (lower with number of stages) and variance (higher with the number of stages). We then look at two cross-validation techniques, where we attempt to minimize the MISE (mean integrated squared error), through means of cross validation utilizing leave-one-out techniques. The two types of CV analysis are: the Least Squared Cross-Validation (or Unbiased Cross Validation) and the Biased Cross Validation. Numerical optimization is required for the LSCV and therefore we can get trapped in spurious solutions, necessitating the limiting of the bandwidth grid for the $\hat{h}_{LSCV}$. The BCV adapts a hybrid strategy estimating a modification of $R(f'')$ with leave-out-diagonals. It is important that the plot or the grid is reviewed in this selector as well as we are looking for the local minimizer not the global as h, the bandwidth , goes to infinity. We ensure to limit the bandwidth grid for both these functions, when necessary, from the function shown in class.
+
+First we see the bandwidths of the "rule of thumb" selector:
+
+```{r, echo=FALSE}
+# RT
+"Past temperatures"
+
+round(bw.nrd(x = pastPhones),3)
+
+"Problematic temperatures"
+
+round(bw.nrd(x = problemPhones),3)
+```
+
+Second we see the DPI bandwidths:
+
+```{r, echo=FALSE}
+# DPI
+
+"Past temperatures"
+
+round(ks::hpi(x = pastPhones),3) 
+
+"Problematic temperatures"
+
+round(ks::hpi(x = problemPhones),3)
+```
+
+Third, we have the LSCV bandwidths:
+
+```{r, echo=FALSE}
+# LSCV 
+
+#Class function
+
+bw.ucv.mod <- function(x, nb = 1000L,
+                       h_grid = 10^seq(-3, log10(1.2 * sd(x) *
+                                                   length(x)^(-1/5)), l = 200),
+                       plot_cv = FALSE) {
+  if ((n <- length(x)) < 2L)
+    stop("need at least 2 data points")
+  n <- as.integer(n)
+  if (is.na(n))
+    stop("invalid length(x)")
+  if (!is.numeric(x))
+    stop("invalid 'x'")
+  nb <- as.integer(nb)
+  if (is.na(nb) || nb <= 0L)
+    stop("invalid 'nb'")
+  storage.mode(x) <- "double"
+  hmax <- 1.144 * sqrt(var(x)) * n^(-1/5)
+  Z <- .Call(stats:::C_bw_den, nb, x)
+  d <- Z[[1L]]
+  cnt <- Z[[2L]]
+  fucv <- function(h) .Call(stats:::C_bw_ucv, n, d, cnt, h)
+  ## Original
+  # h <- optimize(fucv, c(lower, upper), tol = tol)$minimum
+  # if (h < lower + tol | h > upper - tol)
+  #   warning("minimum occurred at one end of the range")
+  ## Modification
+  obj <- sapply(h_grid, function(h) fucv(h))
+  h <- h_grid[which.min(obj)]
+  if (h %in% range(h_grid)) 
+    warning("minimum occurred at one end of h_grid")
+  if (plot_cv) {
+    plot(h_grid, obj, type = "o")
+    rug(h_grid)
+    abline(v = h, col = 2, lwd = 2)
+  }
+  h
+}
+
+"Past temperatures" 
+
+bw.ucv.mod(x = pastPhones, h_grid = 10^seq(-1.5, 0.5, l = 200))
+
+"Problem temperatures"
+
+bw.ucv.mod(x = problemPhones, h_grid = 10^seq(-1.5, 0.5, l = 200))
+```
+
+Lastly we have the BCV bandwidths:
+
+```{r, echo=FALSE}
+# BCV
+# Class function
+
+bw.bcv.mod <- function(x, nb = 1000L,
+                       h.grid = 10^seq(-3, log10(1.2 * sd(x) *
+                                                   length(x)^(-1/5)), l = 200),
+                       plot.cv = FALSE) {
+  if ((n <- length(x)) < 2L)
+    stop("need at least 2 data points")
+  n <- as.integer(n)
+  if (is.na(n))
+    stop("invalid length(x)")
+  if (!is.numeric(x))
+    stop("invalid 'x'")
+  nb <- as.integer(nb)
+  if (is.na(nb) || nb <= 0L)
+    stop("invalid 'nb'")
+  storage.mode(x) <- "double"
+  hmax <- 1.144 * sqrt(var(x)) * n^(-1/5)
+  Z <- .Call(stats:::C_bw_den, nb, x)
+  d <- Z[[1L]]
+  cnt <- Z[[2L]]
+  fbcv <- function(h) .Call(stats:::C_bw_bcv, n, d, cnt, h)
+  # h <- optimize(fbcv, c(lower, upper), tol = tol)$minimum
+  # if (h < lower + tol | h > upper - tol)
+  #   warning("minimum occurred at one end of the range")
+  obj <- sapply(h.grid, function(h) fbcv(h))
+  h <- h.grid[which.min(obj)]
+  if (h %in% range(h.grid)) 
+    warning("minimum occurred at one end of h.grid")
+  if (plot.cv) {
+    plot(h.grid, obj, type = "o")
+    rug(h.grid)
+    abline(v = h, col = 2, lwd = 2)
+  }
+  h
+}
+
+"Past temperatures"
+
+bw.bcv.mod(x = pastPhones  , nb = 1000L)
+
+"Problematic temperatures"
+
+bw.bcv.mod(x = problemPhones  , nb = 1000L)
+```
+To summarize we have:
+
+Past temperature bandwidths:
+   - RT: 1.15
+   - DPI: 0.84
+   - LSCV:  0.64
+   - BCV: 0.88
+
+Problematic temperature bandwidths:
+   - RT: 0.87 
+   - DPI: 0.63
+   - LSCV: 0.66
+   - BCV:  0.61
+
+Reviewing our results, we see that that the RT gives us bandwidths that are quite large in comparison with the other bandwidth selectors, which is common for non-normal data like our own. From the literature, we know from  the DPI selector has a convergence rate that is much faster than the cross-validation technique, and therefore is dominant among academics. We also note that the BCV tends to be more bias, but have substantially less variance than the LSCV, tending to have larger bandwidths.  However, we notice that the default values for bandwidth of 0.75 for the problematic series and, for the past series, 0.98 are fairly similar and, considering part b, we decide to use the default bandwidths as, for our purpose of comparing the series at its entirety, the differences are not important.
+
+## Part b
+
+### Problem Description
+
+Is there any important difference on the results from considering the LSCV selector over the DPI selector?
+
+### Results 
+
+Bandwidths for LSCV and BCV:
+
+Past temperature bandwidths:
+   - DPI: 0.84
+   - LSCV:  0.64
+
+Problematic temperature bandwidths:
+   - DPI: 0.63
+   - LSCV: 0.66
+
+We can see that the bandwidths of LSCV and DPI for the past temperatures differ significantly more than those for the problematic temperatures. The difference between the bandwidths is only 0.03 for the problematic temperatures. It is 0.2 for the past temperatures. In the literature, the DPI has much higher convergence rate than cross-validation methods, like LSCV, however, with very volatile or non-normal data the DPI may over smooth. We may be seeing this in practice as the LSCV does have a smaller bandwidth that is capturing more of disruption around the mode in the past temperatures series. The sample size is also considerably larger in the problematic temperature series so this may allow the two techniques to more closely approach one another. For functional purposes, they are fairly equivalent to us as we are comparing the overall past and problematic series, and both bandwidths more or less find similar curves.
+
+```{r, echo=FALSE}
+#LSCV
+
+#Past temperatures
+
+bw.lscv.pastPhones <- bw.ucv(x = pastPhones)
+
+#Problem Temperatures
+
+bw.lscv.problemPhones <- bw.ucv(x = problemPhones)
+
+#DPI
+
+#Past temperatures
+
+bw_dpi_pastPhones <- bw.SJ(x = pastPhones, method = "dpi")
+
+#Problem Temperatures
+
+bw_dpi_problemPhones <- bw.SJ(x = problemPhones, method = "dpi")
+```
+
+```{r q1partbprob, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "LSCV and DPI densities problematic series\\label{fig:q1partbprob}"}
+# Problem Temperatures
+par(mfrow=c(1,2))
+plot(density(x = problemPhones, bw = bw.lscv.problemPhones), xlim = c(-5,65), main = "Density LSCV: Problematic")
+plot(density(x = problemPhones, bw = bw_dpi_problemPhones), xlim = c(-5,65), main = "Density DPI: Problematic")
+```
+
+```{r q1partbpast, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "LSCV and DPI densities past series\\label{fig:q1partbpast}"}
+# Past Temperatures
+par(mfrow=c(1,2))
+plot(density(x = pastPhones, bw = bw.lscv.pastPhones), xlim = c(-5,65), main = "Density LSCV: Past") 
+plot(density(x = pastPhones, bw = bw_dpi_pastPhones), xlim = c(-5,65), main = "Density DPI: Past")
+```
+
+\newpage
+
+## Part c
+
+### Problem Description
+
+It seems that in temps-7 there is a secondary mode. Compute a kernel derivative estimation for temps-7 and temps-other using what you consider are the most adequate bandwidths.
+
+### Results 
+
+We can see indeed that there is two modes in the problematic series. This second mode is key for our analysis as it likely shows that this mode of high temperatures could be largely responsible for the failure of these cellphones rather than those in general, or the past temperature series. There is further evidence they are modes as the the first derivative crosses the x-axis at these points. We also see a minimum in red. 
+
+```{r q1partcprob, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Mode and derivative estimation analysis: Problematic series\\label{fig:q1partcprob}"}
+## Detect Global mode
+posMax1 <- which.max(density(x = problemPhones)$y)
+
+## Detect minima
+YY <- density(x = problemPhones)$y[density(x = problemPhones)$x > 20 & density(x = problemPhones)$x < 40]
+minY <- min(YY)
+posMin <- which(density(x = problemPhones)$y == minY)
+
+## Detect Secondary mode
+YY <- density(x = problemPhones)$y[density(x = problemPhones)$x > 33 & density(x = problemPhones)$x < 60]
+maxY <- max(YY)
+posMax2 <- which(density(x = problemPhones)$y == maxY)
+
+kdde_0_problemPhones <- ks::kdde(x = problemPhones, deriv.order = 0)
+kdde_1_problemPhones <- ks::kdde(x = problemPhones, deriv.order = 1)
+
+par(mfrow = c(1,2))
+plot(kdde_0_problemPhones, xlab = "x", main = "Mode analysis: Problematic", xlim = c(-5,65))
+abline(v = density(x = problemPhones)$x[posMax1], col = "3")
+abline(v = density(x = problemPhones)$x[posMax2], col = "3")
+abline(v = density(x = problemPhones)$x[posMin], col = "2")
+plot(kdde_1_problemPhones, xlab = "x", main = "Density derivative: Problematic")
+abline(v = density(x = problemPhones)$x[posMax1], col = "3")
+abline(v = density(x = problemPhones)$x[posMax2], col = "3")
+abline(v = density(x = problemPhones)$x[posMin], col = "2")
+abline(h = 0)
+par(mfrow = c(1,1))
+```
+
+
+We can see the mode identified in the past phone series with the green line. We can see that the first derivative crosses the x-axis several times reflecting the disturbance we have around the mode of the series. However, we can still see that a majority of the data falls in the region around 10 and 20. This general idea is suitable for our analysis. 
+
+```{r q1partcpast, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Mode and derivative estimation analysis: Past series\\label{fig:q1partcpast}"}
+pos_Max_PastPhone <- which.max(density(x = pastPhones)$y)
+
+kdde_0_pastPhones <- ks::kdde(x = pastPhones, deriv.order = 0)
+kdde_1_pastPhones <- ks::kdde(x = pastPhones, deriv.order = 1)
+
+par(mfrow = c(1,2))
+plot(kdde_0_pastPhones, xlab = "x", main = "Mode analysis: Past", xlim = c(-5,65))
+abline(v = density(x = pastPhones)$x[pos_Max_PastPhone], col = "3")
+plot(kdde_1_pastPhones, xlab = "x", main = "Density derivative: Past")
+abline(v = density(x = pastPhones)$x[pos_Max_PastPhone], col = "3")
+abline(h = 0)
+par(mfrow = c(1,1))
+```
+
+## Part d
+
+### Problem Description
+
+Precisely determine the location of the extreme points.
+
+### Results
+
+We can see the extreme points of the problematic series for the two modes (13.72, 0.08) and (41.53, 0.01) as well as the minimum point (33.83, 0.002). For the past series, we can see the mode at (31.36, 0.007).
+
+```{r q1partcpast2, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Mode and derivative estimation analysis: Past phone series\\label{fig:q1partcpast2}"}
+"Problematic temperatures"
+
+"Mode 1: x-value"
+density(x = problemPhones)$x[posMax1]  
+"Mode 2: x-value"
+density(x = problemPhones)$x[posMax2]
+"Minimum: x-value"
+density(x = problemPhones)$x[posMin]
+
+"Mode 1: y-value"
+density(x = problemPhones)$y[posMax1]
+"Mode 2: y-value"
+density(x = problemPhones)$y[posMax2] 
+"Minimum: y-value"
+density(x = problemPhones)$y[posMin]
+
+"Past temperatures"
+
+"Mode 1: x-value"
+density(x = pastPhones)$x[posMax2]
+
+"Mode 1: y-value"
+density(x = pastPhones)$y[posMax2]  
+```
+
+## Part e
+
+### Problem Description
+
+Check with a kernel second derivative that the extreme points are actually modes.
+
+### Results
+
+We can confirm that the points of the modes for the problematic series are indeed the modes as the they remain on the opposite side of the second derivative estimator. A mode should be on the negative side of the second derivative and a minimum should be on the positive side. We see this is true for both the modes and minimum of the problematic series.
+
+```{r q1partepast, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Second derivative analysis: Problematic series\\label{fig:q1partepast}"}
+kdde_2_problemPhones <- ks::kdde(x = problemPhones, deriv.order = 2)
+par(mfrow = c(1,3))
+plot(kdde_0_problemPhones, xlab = "x", main = "Problematic series: \n Density estimation", xlim = c(-5,65))
+abline(v = density(x = problemPhones)$x[posMax1], col = "3")
+abline(v = density(x = problemPhones)$x[posMax2], col = "3")
+abline(v = density(x = problemPhones)$x[posMin], col = "2")
+plot(kdde_1_problemPhones, xlab = "x", main = "Problematic series: \n Density derivative estimation")
+abline(v = density(x = problemPhones)$x[posMax1], col = "3")
+abline(v = density(x = problemPhones)$x[posMax2], col = "3")
+abline(v = density(x = problemPhones)$x[posMin], col = "2")
+abline(h = 0)
+plot(kdde_2_problemPhones, xlab = "x", main = "Problematic series: \n  Density second derivative estimation")
+abline(v = density(x = problemPhones)$x[posMax1], col = "3")
+abline(v = density(x = problemPhones)$x[posMax2], col = "3")
+abline(v = density(x = problemPhones)$x[posMin], col = "2")
+abline(h = 0)
+par(mfrow = c(1,1))
+```
+
+We see this is also true for the past series, where the mode is on the negative side of the second derivative estimator.
+
+```{r q1parteprob, echo=FALSE, fig.width = 12, fig.height = 4, fig.cap = "Second derivative analysis: Past series\\label{fig:q1parteprob}"}
+kdde_2_pastPhones <- ks::kdde(x = pastPhones, deriv.order = 2)
+
+par(mfrow = c(1,3))
+plot(kdde_0_pastPhones, xlab = "x", main = "Past series \n Density estimation", xlim = c(-5,65))
+abline(v = density(x = pastPhones)$x[pos_Max_PastPhone], col = "3")
+plot(kdde_1_pastPhones, xlab = "x", main = "Past battery \n Density derivative estimation")
+abline(v = density(x = pastPhones)$x[pos_Max_PastPhone], col = "3")
+abline(h = 0)
+plot(kdde_2_pastPhones, xlab = "x", main = "Past series \n Density Second derivative estimation")
+abline(v = density(x = pastPhones)$x[pos_Max_PastPhone], col = "3")
+abline(h = 0)
+par(mfrow = c(1,1))
+```
 
 \newpage
 
